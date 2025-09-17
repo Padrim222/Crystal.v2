@@ -8,6 +8,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import CrushPipeline from "./pages/CrushPipeline";
+import Chat from "./pages/Chat";
 import AppLayout from "./components/AppLayout";
 import NotFound from "./pages/NotFound";
 
@@ -25,7 +26,7 @@ const App = () => (
           <Route path="/*" element={<AppLayout />}>
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="crushes" element={<CrushPipeline />} />
-            <Route path="chat" element={<div>Chat Page - Coming Soon</div>} />
+            <Route path="chat" element={<Chat />} />
             <Route path="personalization" element={<div>Personalization Page - Coming Soon</div>} />
             <Route path="insights" element={<div>Insights Page - Coming Soon</div>} />
             <Route path="settings" element={<div>Settings Page - Coming Soon</div>} />

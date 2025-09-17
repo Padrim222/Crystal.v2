@@ -1,1 +1,10 @@
 project_id = "fttijdskbsvjvnszutzh"
+
+[functions.n8n-webhook-handler]
+verify_jwt = true
+
+[functions.n8n-custom-webhook]
+verify_jwt = false
+
+[functions.crystal-analytics]
+verify_jwt = true

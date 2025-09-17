@@ -4,88 +4,57 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Plus, Eye, Heart, MessageCircle, Calendar, Users } from "lucide-react";
-
-// Mock data for crushes
-const mockCrushes = {
-  "primeiro-contato": [
-    {
-      id: 1,
-      name: "Maria Silva",
-      age: 28,
-      photo: "",
-      status: "Aguardando resposta",
-      lastInteraction: "2 horas atrás"
-    },
-    {
-      id: 2,
-      name: "Ana Santos",
-      age: 25,
-      photo: "",
-      status: "Match recente",
-      lastInteraction: "1 dia atrás"
-    }
-  ],
-  "conversa-inicial": [
-    {
-      id: 3,
-      name: "Paula Costa",
-      age: 30,
-      photo: "",
-      status: "Conversando bem",
-      lastInteraction: "30 min atrás"
-    }
-  ],
-  "encontro": [
-    {
-      id: 4,
-      name: "Sofia Lima",
-      age: 27,
-      photo: "",
-      status: "Encontro marcado",
-      lastInteraction: "Amanhã às 19h"
-    }
-  ],
-  "relacionamento": []
-};
+import { useCrushes } from "@/hooks/useCrushes";
+import { AddCrushDialog } from "@/components/AddCrushDialog";
 
 const stages = [
   {
-    id: "primeiro-contato",
+    id: "Primeiro Contato",
     title: "Primeiro Contato",
     color: "bg-blue-500",
     icon: Heart,
-    count: mockCrushes["primeiro-contato"].length
   },
   {
-    id: "conversa-inicial",
+    id: "Conversa Inicial", 
     title: "Conversa Inicial",
     color: "bg-purple-500",
     icon: MessageCircle,
-    count: mockCrushes["conversa-inicial"].length
   },
   {
-    id: "encontro",
-    title: "Encontro",
+    id: "Encontro",
+    title: "Encontro", 
     color: "bg-green-500",
     icon: Calendar,
-    count: mockCrushes["encontro"].length
   },
   {
-    id: "relacionamento",
+    id: "Relacionamento",
     title: "Relacionamento",
     color: "bg-red-500",
     icon: Users,
-    count: mockCrushes["relacionamento"].length
   }
 ];
 
 function CrushCard({ crush }: { crush: any }) {
+  const formatLastInteraction = (dateString: string | null) => {
+    if (!dateString) return 'Sem interação';
+    
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Agora mesmo';
+    if (diffInHours < 24) return `${diffInHours}h atrás`;
+    if (diffInHours < 48) return 'Ontem';
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    return `${diffInDays} dias atrás`;
+  };
   return (
     <Card className="mb-3 shadow-card bg-gradient-card border-0 hover:shadow-glow transition-all duration-300 cursor-pointer">
       <CardHeader className="pb-3">
         <div className="flex items-center space-x-3">
           <Avatar className="h-12 w-12">
-            <AvatarImage src={crush.photo} alt={crush.name} />
+            <AvatarImage src="" alt={crush.name} />
             <AvatarFallback className="bg-primary text-primary-foreground">
               {crush.name.split(' ').map((n: string) => n[0]).join('')}
             </AvatarFallback>
@@ -98,17 +67,17 @@ function CrushCard({ crush }: { crush: any }) {
               </Button>
             </div>
             <CardDescription className="text-xs">
-              {crush.age} anos
+              {crush.age ? `${crush.age} anos` : 'Idade não informada'}
             </CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
         <Badge variant="secondary" className="text-xs mb-2">
-          {crush.status}
+          Nível {crush.interest_level || 0}
         </Badge>
         <p className="text-xs text-muted-foreground">
-          {crush.lastInteraction}
+          {formatLastInteraction(crush.last_interaction)}
         </p>
       </CardContent>
     </Card>
@@ -125,7 +94,7 @@ function StageColumn({ stage, crushes }: { stage: any; crushes: any[] }) {
             {stage.title}
           </h3>
           <Badge variant="outline" className="text-xs">
-            {stage.count}
+            {crushes.length}
           </Badge>
         </div>
         <div className="h-px bg-border" />
@@ -150,7 +119,31 @@ function StageColumn({ stage, crushes }: { stage: any; crushes: any[] }) {
 }
 
 const CrushPipeline = () => {
-  const [selectedCrush, setSelectedCrush] = useState(null);
+  const { crushesByStage, stats, loading, addCrush } = useCrushes();
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-muted rounded w-1/3"></div>
+          <div className="h-4 bg-muted rounded w-1/2"></div>
+        </div>
+        <div className="flex gap-6 overflow-x-auto pb-4">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="flex-1 min-w-80">
+              <div className="h-6 bg-muted rounded mb-4"></div>
+              <div className="space-y-3">
+                {[1, 2].map(j => (
+                  <div key={j} className="h-32 bg-muted rounded-lg animate-pulse"></div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -162,7 +155,11 @@ const CrushPipeline = () => {
             Gerencie suas paqueras e acompanhe o progresso de cada conquista
           </p>
         </div>
-        <Button variant="crystal" className="gap-2">
+        <Button 
+          variant="crystal" 
+          className="gap-2"
+          onClick={() => setShowAddDialog(true)}
+        >
           <Plus className="h-4 w-4" />
           Adicionar Paquera
         </Button>
@@ -174,7 +171,7 @@ const CrushPipeline = () => {
           <StageColumn
             key={stage.id}
             stage={stage}
-            crushes={mockCrushes[stage.id as keyof typeof mockCrushes]}
+            crushes={crushesByStage[stage.id] || []}
           />
         ))}
       </div>
@@ -188,7 +185,7 @@ const CrushPipeline = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">
-              {Object.values(mockCrushes).flat().length}
+              {stats.total}
             </div>
             <p className="text-xs text-muted-foreground">
               Ativas no pipeline
@@ -203,7 +200,7 @@ const CrushPipeline = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-accent">
-              {mockCrushes["conversa-inicial"].length}
+              {stats.byStage['Conversa Inicial']}
             </div>
             <p className="text-xs text-muted-foreground">
               Conversas ativas
@@ -218,7 +215,7 @@ const CrushPipeline = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-secondary">
-              {mockCrushes["encontro"].length}
+              {stats.byStage['Encontro']}
             </div>
             <p className="text-xs text-muted-foreground">
               Próximos encontros
@@ -233,7 +230,7 @@ const CrushPipeline = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-success">
-              85%
+              {stats.successRate}%
             </div>
             <p className="text-xs text-muted-foreground">
               Este mês
@@ -241,6 +238,16 @@ const CrushPipeline = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Add Crush Dialog */}
+      <AddCrushDialog 
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        onCrushAdded={(crush) => {
+          setShowAddDialog(false);
+          // Refresh is handled by the hook
+        }}
+      />
     </div>
   );
 };

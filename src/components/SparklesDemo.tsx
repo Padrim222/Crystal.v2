@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 import { SparklesCore } from "@/components/ui/sparkles";
-import { Button } from "@/components/ui/button";
 import { GradientButton } from "@/components/ui/gradient-button";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -26,10 +25,10 @@ export function SparklesHero() {
         {/* Neon effect section with sparkles */}
         <div className="w-full max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-4xl h-32 sm:h-40 relative">
           {/* Gradients */}
-          <div className="absolute inset-x-4 sm:inset-x-8 md:inset-x-20 top-0 bg-gradient-to-r from-transparent via-primary to-transparent h-[2px] w-3/4 blur-sm" />
-          <div className="absolute inset-x-4 sm:inset-x-8 md:inset-x-20 top-0 bg-gradient-to-r from-transparent via-primary to-transparent h-px w-3/4" />
-          <div className="absolute inset-x-8 sm:inset-x-16 md:inset-x-32 lg:inset-x-60 top-0 bg-gradient-to-r from-transparent via-accent-red to-transparent h-[5px] w-1/4 blur-sm" />
-          <div className="absolute inset-x-8 sm:inset-x-16 md:inset-x-32 lg:inset-x-60 top-0 bg-gradient-to-r from-transparent via-accent-red to-transparent h-px w-1/4" />
+          <div className="absolute inset-x-4 sm:inset-x-8 md:inset-x-20 top-0 bg-gradient-to-r from-transparent via-coral to-transparent h-[2px] w-3/4 blur-sm" />
+          <div className="absolute inset-x-4 sm:inset-x-8 md:inset-x-20 top-0 bg-gradient-to-r from-transparent via-coral to-transparent h-px w-3/4" />
+          <div className="absolute inset-x-8 sm:inset-x-16 md:inset-x-32 lg:inset-x-60 top-0 bg-gradient-to-r from-transparent via-crimson to-transparent h-[5px] w-1/4 blur-sm" />
+          <div className="absolute inset-x-8 sm:inset-x-16 md:inset-x-32 lg:inset-x-60 top-0 bg-gradient-to-r from-transparent via-crimson to-transparent h-px w-1/4" />
 
           {/* Core component */}
           <SparklesCore

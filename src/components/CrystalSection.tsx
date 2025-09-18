@@ -14,7 +14,7 @@ const CrystalSection = () => {
           <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">
             Como Funciona o <span className="text-gradient">Crystal.ai</span>
           </h2>
-          <p className="text-gray-300 text-lg max-w-3xl mx-auto">
+          <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
             Nossa IA analisa milhares de pontos de compatibilidade para encontrar matches perfeitos
           </p>
         </motion.div>
@@ -50,7 +50,7 @@ const CrystalSection = () => {
               <div className="text-4xl mb-4">{item.icon}</div>
               <div className="text-primary text-sm font-bold mb-2">{item.step}</div>
               <h3 className="text-xl font-bold text-white mb-4">{item.title}</h3>
-              <p className="text-gray-300">{item.description}</p>
+              <p className="text-muted-foreground">{item.description}</p>
             </motion.div>
           ))}
         </div>

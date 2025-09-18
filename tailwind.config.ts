@@ -70,9 +70,9 @@ export default {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
         },
+        "accent-red": "hsl(var(--accent-red))",
         "accent-pink": "hsl(var(--accent-pink))",
-        "accent-amber": "hsl(var(--accent-amber))",
-        "accent-blue": "hsl(var(--accent-blue))",
+        "accent-gray": "hsl(var(--accent-gray))",
       },
       borderRadius: {
         "sm": "var(--radius-sm)",

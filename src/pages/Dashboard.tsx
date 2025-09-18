@@ -111,7 +111,7 @@ const Dashboard = () => {
         <h2 className="text-xl font-semibold text-foreground">Ações Rápidas</h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Button 
-            variant="crystal" 
+            variant="premium" 
             size="lg" 
             className="h-16 text-left justify-start"
             onClick={() => navigate('/chat')}

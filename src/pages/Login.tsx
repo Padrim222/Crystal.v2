@@ -139,7 +139,7 @@ const Login = () => {
 
                 <Button
                   type="submit"
-                  variant="crystal"
+                  variant="premium"
                   className="w-full h-12"
                   disabled={loading}
                 >

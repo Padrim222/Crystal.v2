@@ -156,7 +156,7 @@ const CrushPipeline = () => {
           </p>
         </div>
         <Button 
-          variant="crystal" 
+          variant="premium" 
           className="gap-2"
           onClick={() => setShowAddDialog(true)}
         >

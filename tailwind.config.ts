@@ -70,27 +70,22 @@ export default {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
         },
+        "accent-pink": "hsl(var(--accent-pink))",
+        "accent-amber": "hsl(var(--accent-amber))",
+        "accent-blue": "hsl(var(--accent-blue))",
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        "sm": "var(--radius-sm)",
+        "DEFAULT": "var(--radius)",
+        "lg": "var(--radius-lg)",
+        "xl": "var(--radius-xl)",
+        "2xl": "calc(var(--radius-xl) + 8px)",
       },
       keyframes: {
         "accordion-down": {
           from: {
             height: "0",
-      },
-      backgroundImage: {
-        "gradient-hero": "var(--gradient-hero)",
-        "gradient-card": "var(--gradient-card)",
-        "gradient-button": "var(--gradient-button)",
-        "gradient-subtle": "var(--gradient-subtle)",
-      },
-      boxShadow: {
-        "card": "var(--shadow-card)",
-        "glow": "var(--shadow-glow)",
-      },
+          },
           to: {
             height: "var(--radix-accordion-content-height)",
           },
@@ -103,6 +98,25 @@ export default {
             height: "0",
           },
         },
+      },
+      backgroundImage: {
+        "gradient-hero": "var(--gradient-hero)",
+        "gradient-card": "var(--gradient-card)",
+        "gradient-primary": "var(--gradient-primary)",
+        "gradient-glass": "var(--gradient-glass)",
+      },
+      boxShadow: {
+        "premium": "var(--shadow-premium)",
+        "card": "var(--shadow-card)",
+        "glow": "var(--shadow-glow)",
+        "hover": "var(--shadow-hover)",
+      },
+      fontFamily: {
+        sans: ['Inter', 'SF Pro Display', 'system-ui', 'sans-serif'],
+      },
+      scale: {
+        "102": "1.02",
+        "98": "0.98",
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",

@@ -201,7 +201,7 @@ export function AddCrushDialog({
               </Button>
               <Button 
                 type="submit" 
-                variant="crystal" 
+                variant="premium" 
                 disabled={isLoading}
               >
                 {isLoading ? "Adicionando..." : "Adicionar Paquera"}

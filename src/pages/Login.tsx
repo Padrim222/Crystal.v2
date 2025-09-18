@@ -121,7 +121,7 @@ const Login = () => {
           </form>
 
           <p className="text-center text-xs sm:text-sm text-gray-400 mt-4 sm:mt-6">
-            Não tem uma conta? <a href="#" className="font-semibold text-primary hover:text-primary/80 transition">Criar conta</a>
+            Não tem uma conta? <a href="#" className="font-semibold text-primary hover:text-primary/80 transition">Adquirir Crystal</a>
           </p>
         </div>
       </div>

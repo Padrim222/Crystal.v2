@@ -1,176 +1,131 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, EyeOff, Heart } from "lucide-react";
-import heroImage from "@/assets/hero-login.jpg";
+"use client";
+import React from "react";
+import { GradientButton } from "@/components/ui/gradient-button";
+import { SmokeyBackground } from "@/components/ui/smokey-background";
+import { MaintenanceAlert } from "@/components/ui/maintenance-alert";
+import { User, Lock, ArrowRight } from 'lucide-react';
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLogin, setIsLogin] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    // TODO: Integrate with Supabase Auth
-    setTimeout(() => setLoading(false), 2000);
+    navigate('/dashboard');
+  };
+
+  const handleDevMode = () => {
+    navigate('/dashboard');
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Hero Section */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-hero opacity-90 z-10" />
-        <img 
-          src={heroImage} 
-          alt="Crystal.ai - Your Dating AI Assistant" 
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 z-20 flex flex-col justify-center items-center text-white p-12">
-          <div className="flex items-center gap-3 mb-8">
-            <Heart className="h-12 w-12 text-white" />
-            <h1 className="text-4xl font-bold">Crystal.ai</h1>
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="min-h-screen w-full flex items-center justify-center relative overflow-hidden p-4 sm:p-6"
+    >
+      <SmokeyBackground 
+        color="#F27983" 
+        backdropBlurAmount="md"
+        className="opacity-80"
+      />
+
+      <div className="relative z-20 w-full max-w-md mx-auto">
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-2xl p-4 sm:p-6 md:p-8">
+          <div className="text-center mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+              <span 
+                onClick={handleDevMode}
+                className="cursor-default select-none hover:text-primary transition-colors duration-300"
+              >
+                B
+              </span>
+              em vindo à Crystal.ai
+            </h1>
+            <p className="text-gray-300 text-sm sm:text-base">Faça login para continuar</p>
           </div>
-          <h2 className="text-2xl font-light mb-4 text-center">
-            Sua assistente de relacionamentos com IA
-          </h2>
-          <p className="text-lg opacity-90 text-center max-w-md">
-            Conquiste com confiança. A Crystal está aqui para te ajudar em cada etapa da sua jornada amorosa.
+
+          <MaintenanceAlert />
+
+          <form className="space-y-6 sm:space-y-8" onSubmit={handleLogin}>
+            <div className="relative z-0">
+              <input
+                type="email"
+                id="floating_email"
+                className="block py-2.5 px-0 w-full text-sm text-white bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-primary peer"
+                placeholder=" " 
+                required
+              />
+              <label
+                htmlFor="floating_email"
+                className="absolute text-sm text-gray-300 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
+              >
+                <User className="inline-block mr-2 -mt-1" size={16} />
+                Email
+              </label>
+            </div>
+
+            <div className="relative z-0">
+              <input
+                type="password"
+                id="floating_password"
+                className="block py-2.5 px-0 w-full text-sm text-white bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-primary peer"
+                placeholder=" "
+                required
+              />
+              <label
+                htmlFor="floating_password"
+                className="absolute text-sm text-gray-300 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
+              >
+                <Lock className="inline-block mr-2 -mt-1" size={16} />
+                Senha
+              </label>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <a href="#" className="text-xs text-gray-300 hover:text-white transition">
+                Esqueci minha senha
+              </a>
+            </div>
+            
+            <GradientButton
+              type="submit"
+              className="group w-full flex items-center justify-center"
+            >
+              Entrar
+              <ArrowRight className="ml-2 h-5 w-5 transform group-hover:translate-x-1 transition-transform" />
+            </GradientButton>
+
+            <div className="relative flex py-2 items-center">
+                <div className="flex-grow border-t border-gray-400/30"></div>
+                <span className="flex-shrink mx-4 text-gray-400 text-xs">OU CONTINUE COM</span>
+                <div className="flex-grow border-t border-gray-400/30"></div>
+            </div>
+
+            <button
+              type="button"
+              className="w-full flex items-center justify-center py-2.5 px-4 bg-white/90 hover:bg-white rounded-lg text-gray-700 font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-primary transition-all duration-300"
+            >
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 48 48">
+                <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039L38.802 8.841C34.553 4.806 29.613 2.5 24 2.5C11.983 2.5 2.5 11.983 2.5 24s9.483 21.5 21.5 21.5S45.5 36.017 45.5 24c0-1.538-.135-3.022-.389-4.417z"></path><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12.5 24 12.5c3.059 0 5.842 1.154 7.961 3.039l5.839-5.841C34.553 4.806 29.613 2.5 24 2.5C16.318 2.5 9.642 6.723 6.306 14.691z"></path><path fill="#4CAF50" d="M24 45.5c5.613 0 10.553-2.306 14.802-6.341l-5.839-5.841C30.842 35.846 27.059 38 24 38c-5.039 0-9.345-2.608-11.124-6.481l-6.571 4.819C9.642 41.277 16.318 45.5 24 45.5z"></path><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l5.839 5.841C44.196 35.123 45.5 29.837 45.5 24c0-1.538-.135-3.022-.389-4.417z"></path>
+              </svg>
+              Entrar com Google
+            </button>
+
+            <GradientButton variant="variant" className="w-full text-sm sm:text-base py-2.5 sm:py-3" type="button">
+              Adquirir Crystal
+            </GradientButton>
+          </form>
+
+          <p className="text-center text-xs sm:text-sm text-gray-400 mt-4 sm:mt-6">
+            Não tem uma conta? <a href="#" className="font-semibold text-primary hover:text-primary/80 transition">Criar conta</a>
           </p>
         </div>
       </div>
-
-      {/* Form Section */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-gradient-subtle">
-        <div className="w-full max-w-md space-y-8">
-          {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
-            <Heart className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">Crystal.ai</h1>
-          </div>
-
-          <Card className="shadow-card bg-gradient-card border-0">
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl font-bold text-center">
-                {isLogin ? "Bem-vindo de volta!" : "Crie sua conta"}
-              </CardTitle>
-              <CardDescription className="text-center">
-                {isLogin 
-                  ? "Entre para continuar sua jornada amorosa" 
-                  : "Comece sua jornada com a Crystal.ai"
-                }
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {!isLogin && (
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nome Completo</Label>
-                    <Input
-                      id="name"
-                      type="text"
-                      placeholder="Seu nome completo"
-                      className="h-12"
-                      required
-                    />
-                  </div>
-                )}
-                
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    className="h-12"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="password">Senha</Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Sua senha"
-                      className="h-12 pr-12"
-                      required
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-12 px-3 hover:bg-transparent"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <Eye className="h-4 w-4 text-muted-foreground" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-
-                {!isLogin && (
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirmar Senha</Label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="Confirme sua senha"
-                      className="h-12"
-                      required
-                    />
-                  </div>
-                )}
-
-                {isLogin && (
-                  <div className="flex justify-end">
-                    <Button variant="link" className="p-0 h-auto text-sm text-muted-foreground hover:text-primary">
-                      Esqueceu a senha?
-                    </Button>
-                  </div>
-                )}
-
-                <Button
-                  type="submit"
-                  variant="premium"
-                  className="w-full h-12"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      {isLogin ? "Entrando..." : "Criando conta..."}
-                    </div>
-                  ) : (
-                    isLogin ? "Entrar" : "Criar Conta"
-                  )}
-                </Button>
-              </form>
-
-              <div className="mt-6 text-center">
-                <p className="text-sm text-muted-foreground">
-                  {isLogin ? "Não tem uma conta?" : "Já tem uma conta?"}
-                  <Button
-                    variant="link"
-                    className="p-0 ml-1 h-auto text-sm"
-                    onClick={() => setIsLogin(!isLogin)}
-                  >
-                    {isLogin ? "Cadastre-se" : "Entre aqui"}
-                  </Button>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
+    </motion.div>
   );
 };
 

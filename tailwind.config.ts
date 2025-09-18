@@ -73,6 +73,27 @@ export default {
         "accent-red": "hsl(var(--accent-red))",
         "accent-pink": "hsl(var(--accent-pink))",
         "accent-gray": "hsl(var(--accent-gray))",
+        // Crystal.ai sparkles theme colors
+        coral: {
+          DEFAULT: "hsl(var(--coral))",
+          foreground: "hsl(var(--coral-foreground))",
+        },
+        crimson: {
+          DEFAULT: "hsl(var(--crimson))", 
+          foreground: "hsl(var(--crimson-foreground))",
+        },
+        ruby: {
+          DEFAULT: "hsl(var(--ruby))",
+          foreground: "hsl(var(--ruby-foreground))",
+        },
+        pearl: {
+          DEFAULT: "hsl(var(--pearl))",
+          foreground: "hsl(var(--pearl-foreground))",
+        },
+        obsidian: {
+          DEFAULT: "hsl(var(--obsidian))",
+          foreground: "hsl(var(--obsidian-foreground))",
+        },
       },
       borderRadius: {
         "sm": "var(--radius-sm)",

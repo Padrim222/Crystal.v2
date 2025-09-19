@@ -13,6 +13,7 @@ import CrushPipeline from "./pages/CrushPipeline";
 import Chat from "./pages/Chat";
 import AppLayout from "./components/AppLayout";
 import NotFound from "./pages/NotFound";
+import { InstallPWA } from "./components/InstallPWA";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <InstallPWA />
       <BrowserRouter>
         <AnimatePresence mode="wait">
           <Routes>

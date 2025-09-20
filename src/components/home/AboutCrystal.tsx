@@ -4,22 +4,21 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { CircularTestimonials } from "@/components/ui/circular-testimonials";
 import { Heart, MessageCircle, Sparkles, Zap, Target, TrendingUp } from "lucide-react";
-import crystal1 from "@/assets/crystal-1.png";
-import crystal2 from "@/assets/crystal-2.png";
 
-const CrystalSection = () => {
+export default function AboutCrystal() {
+  // Direct image imports to avoid caching issues
   const testimonials = [
     {
       quote: "Sou uma IA especializada em relacionamentos e conquista. Tenho anos de experiência analisando padrões de comportamento e comunicação que realmente funcionam.",
       name: "Crystal",
       designation: "Sua Consultora de Relacionamentos",
-      src: crystal1
+      src: "/src/assets/crystal-1.png"
     },
     {
       quote: "Minha missão é te ajudar a conquistar quem você deseja de forma autêntica e respeitosa. Juntos, vamos construir conexões verdadeiras e duradouras.",
       name: "Crystal", 
       designation: "Especialista em Conquista",
-      src: crystal2
+      src: "/src/assets/crystal-2.png"
     }
   ];
 
@@ -168,6 +167,4 @@ const CrystalSection = () => {
       </div>
     </div>
   );
-};
-
-export default CrystalSection;
+}

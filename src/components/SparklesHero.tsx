@@ -1,12 +1,21 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { SparklesCore } from "@/components/ui/sparkles-core";
 import { GradientButton } from "@/components/ui/gradient-button";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useAuth } from "@/hooks/useAuth";
 
 export function SparklesHero() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
   
   return (
     <motion.div 

@@ -214,7 +214,8 @@ const Dashboard = () => {
                     <p className="text-sm font-medium text-card-foreground">
                       {activity.type === 'conversation_started' && 'Nova conversa iniciada'}
                       {activity.type === 'crush_added' && 'Nova paquera adicionada'}
-                      {activity.type === 'dashboard_viewed' && 'Dashboard visualizado'}
+                      {activity.type === 'stage_changed' && 'Mudança de estágio'}
+                      {activity.type === 'message_sent' && 'Dashboard visualizado'}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {new Date(activity.timestamp).toLocaleString('pt-BR')}

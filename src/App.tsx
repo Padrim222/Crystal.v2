@@ -11,6 +11,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import CrushPipeline from "./pages/CrushPipeline";
 import Chat from "./pages/Chat";
+import Subscription from "./pages/Subscription";
 import AppLayout from "./components/AppLayout";
 import NotFound from "./pages/NotFound";
 import { InstallPWA } from "./components/InstallPWA";
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="insights" element={<div>Insights Page - Coming Soon</div>} />
               <Route path="settings" element={<div>Settings Page - Coming Soon</div>} />
               <Route path="profile" element={<div>Profile Page - Coming Soon</div>} />
+              <Route path="subscription" element={<Subscription />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

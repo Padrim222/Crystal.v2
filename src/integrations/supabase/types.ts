@@ -206,6 +206,45 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          external_id: string | null
+          id: string
+          payment_data: Json | null
+          plan_type: string
+          started_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          external_id?: string | null
+          id?: string
+          payment_data?: Json | null
+          plan_type?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          external_id?: string | null
+          id?: string
+          payment_data?: Json | null
+          plan_type?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_settings: {
         Row: {
           behavior_direta: boolean | null
@@ -261,7 +300,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      user_has_active_subscription: {
+        Args: { check_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

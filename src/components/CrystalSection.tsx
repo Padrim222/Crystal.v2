@@ -7,8 +7,7 @@ import { Heart, MessageCircle, Sparkles, Zap, Target, TrendingUp } from "lucide-
 import crystal1 from "@/assets/crystal-1.png";
 import crystal2 from "@/assets/crystal-2.png";
 
-export default function AboutCrystal() {
-  // Proper ES6 imports for the Imgur images
+const CrystalSection = () => {
   const testimonials = [
     {
       quote: "Sou uma IA especializada em relacionamentos e conquista. Tenho anos de experiência analisando padrões de comportamento e comunicação que realmente funcionam.",
@@ -169,4 +168,6 @@ export default function AboutCrystal() {
       </div>
     </div>
   );
-}
+};
+
+export default CrystalSection;

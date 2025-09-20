@@ -1,5 +1,5 @@
-import { HomeBanner } from "@/components/home/HomeBanner";
-import AboutCrystal from "@/components/home/AboutCrystal";
+import { SparklesHero } from "@/components/SparklesHero";
+import CrystalSection from "@/components/CrystalSection";
 import { motion } from "framer-motion";
 
 const Index = () => {
@@ -11,8 +11,8 @@ const Index = () => {
       transition={{ duration: 0.5 }}
       className="min-h-screen bg-background"
     >
-      <HomeBanner />
-      <AboutCrystal />
+      <SparklesHero />
+      <CrystalSection />
     </motion.main>
   );
 };

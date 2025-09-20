@@ -1,11 +1,11 @@
 "use client";
 import React from "react";
-import { SparklesCore } from "@/components/ui/sparkles";
+import { SparklesCore } from "@/components/ui/sparkles-core";
 import { GradientButton } from "@/components/ui/gradient-button";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
-export function HomeBanner() {
+export function SparklesHero() {
   const navigate = useNavigate();
   
   return (
@@ -24,7 +24,7 @@ export function HomeBanner() {
         
         {/* Neon effect section with sparkles */}
         <div className="w-full max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-4xl h-32 sm:h-40 relative">
-          {/* Gradients - Perfectly centered */}
+          {/* Gradients */}
           <div className="absolute left-1/2 top-0 -translate-x-1/2 bg-gradient-to-r from-transparent via-coral to-transparent h-[2px] w-3/4 blur-sm" />
           <div className="absolute left-1/2 top-0 -translate-x-1/2 bg-gradient-to-r from-transparent via-coral to-transparent h-px w-3/4" />
           <div className="absolute left-1/2 top-0 -translate-x-1/2 bg-gradient-to-r from-transparent via-crimson to-transparent h-[5px] w-1/4 blur-sm" />

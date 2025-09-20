@@ -133,7 +133,7 @@ export default {
         "hover": "var(--shadow-hover)",
       },
       fontFamily: {
-        sans: ['Inter', 'SF Pro Display', 'system-ui', 'sans-serif'],
+        sans: ['Urbanist', 'system-ui', 'sans-serif'],
       },
       scale: {
         "102": "1.02",

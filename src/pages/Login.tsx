@@ -1,22 +1,109 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { GradientButton } from "@/components/ui/gradient-button";
 import { SmokeyBackground } from "@/components/ui/smokey-background";
 import { MaintenanceAlert } from "@/components/ui/maintenance-alert";
-import { User, Lock, ArrowRight } from 'lucide-react';
+import { User, Lock, ArrowRight, Mail, UserPlus } from 'lucide-react';
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const { signIn, signUp, isAuthenticated, loading } = useAuth();
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    name: "",
+  });
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    navigate('/dashboard');
-  };
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleDevMode = () => {
     navigate('/dashboard');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.email || !formData.password) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha email e senha",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isSignUp && formData.password.length < 6) {
+      toast({
+        title: "Senha muito curta",
+        description: "A senha deve ter pelo menos 6 caracteres",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isSignUp) {
+      const result = await signUp(formData.email, formData.password, formData.name);
+      if (!result.error) {
+        setIsSignUp(false);
+        setFormData({ email: "", password: "", name: "" });
+      }
+    } else {
+      const result = await signIn(formData.email, formData.password);
+      if (!result.error) {
+        navigate("/dashboard");
+      }
+    }
+  };
+
+  const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, [field]: e.target.value }));
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+      
+      if (error) {
+        toast({
+          title: "Erro no login",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Google sign in error:', error);
+      toast({
+        title: "Erro no login",
+        description: "Erro ao conectar com Google",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Test accounts for demonstration
+  const fillTestAccount = () => {
+    setFormData({
+      email: "teste@crystal.ai",
+      password: "123456",
+      name: "Usuário Teste"
+    });
   };
 
   return (
@@ -45,16 +132,40 @@ const Login = () => {
               </span>
               em vindo à Crystal.ai
             </h1>
-            <p className="text-gray-300 text-sm sm:text-base">Faça login para continuar</p>
+            <p className="text-gray-300 text-sm sm:text-base">
+              {isSignUp ? 'Crie sua conta para continuar' : 'Faça login para continuar'}
+            </p>
           </div>
 
           <MaintenanceAlert />
 
-          <form className="space-y-6 sm:space-y-8" onSubmit={handleLogin}>
+          <form className="space-y-6 sm:space-y-8" onSubmit={handleSubmit}>
+            {isSignUp && (
+              <div className="relative z-0">
+                <input
+                  type="text"
+                  id="floating_name"
+                  value={formData.name}
+                  onChange={handleInputChange('name')}
+                  className="block py-2.5 px-0 w-full text-sm text-white bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-primary peer"
+                  placeholder=" " 
+                />
+                <label
+                  htmlFor="floating_name"
+                  className="absolute text-sm text-gray-300 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
+                >
+                  <User className="inline-block mr-2 -mt-1" size={16} />
+                  Nome (opcional)
+                </label>
+              </div>
+            )}
+
             <div className="relative z-0">
               <input
                 type="email"
                 id="floating_email"
+                value={formData.email}
+                onChange={handleInputChange('email')}
                 className="block py-2.5 px-0 w-full text-sm text-white bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-primary peer"
                 placeholder=" " 
                 required
@@ -63,7 +174,7 @@ const Login = () => {
                 htmlFor="floating_email"
                 className="absolute text-sm text-gray-300 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
               >
-                <User className="inline-block mr-2 -mt-1" size={16} />
+                <Mail className="inline-block mr-2 -mt-1" size={16} />
                 Email
               </label>
             </div>
@@ -72,6 +183,8 @@ const Login = () => {
               <input
                 type="password"
                 id="floating_password"
+                value={formData.password}
+                onChange={handleInputChange('password')}
                 className="block py-2.5 px-0 w-full text-sm text-white bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-primary peer"
                 placeholder=" "
                 required
@@ -81,22 +194,47 @@ const Login = () => {
                 className="absolute text-sm text-gray-300 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
               >
                 <Lock className="inline-block mr-2 -mt-1" size={16} />
-                Senha
+                Senha {isSignUp && '(mín. 6 caracteres)'}
               </label>
             </div>
 
-            <div className="flex items-center justify-between">
-              <a href="#" className="text-xs text-gray-300 hover:text-white transition">
-                Esqueci minha senha
-              </a>
-            </div>
+            {!isSignUp && (
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={fillTestAccount}
+                  className="text-xs text-gray-300 hover:text-white transition underline"
+                >
+                  Usar conta teste
+                </button>
+                <a href="#" className="text-xs text-gray-300 hover:text-white transition">
+                  Esqueci minha senha
+                </a>
+              </div>
+            )}
             
             <GradientButton
               type="submit"
+              disabled={loading}
               className="group w-full flex items-center justify-center"
             >
-              Entrar
-              <ArrowRight className="ml-2 h-5 w-5 transform group-hover:translate-x-1 transition-transform" />
+              {loading ? (
+                "Carregando..."
+              ) : (
+                <>
+                  {isSignUp ? (
+                    <>
+                      Criar Conta
+                      <UserPlus className="ml-2 h-5 w-5 transform group-hover:translate-x-1 transition-transform" />
+                    </>
+                  ) : (
+                    <>
+                      Entrar
+                      <ArrowRight className="ml-2 h-5 w-5 transform group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </>
+              )}
             </GradientButton>
 
             <div className="relative flex py-2 items-center">
@@ -107,7 +245,9 @@ const Login = () => {
 
             <button
               type="button"
-              className="w-full flex items-center justify-center py-2.5 px-4 bg-white/90 hover:bg-white rounded-lg text-gray-700 font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-primary transition-all duration-300"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              className="w-full flex items-center justify-center py-2.5 px-4 bg-white/90 hover:bg-white rounded-lg text-gray-700 font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-primary transition-all duration-300 disabled:opacity-50"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 48 48">
                 <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039L38.802 8.841C34.553 4.806 29.613 2.5 24 2.5C11.983 2.5 2.5 11.983 2.5 24s9.483 21.5 21.5 21.5S45.5 36.017 45.5 24c0-1.538-.135-3.022-.389-4.417z"></path><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12.5 24 12.5c3.059 0 5.842 1.154 7.961 3.039l5.839-5.841C34.553 4.806 29.613 2.5 24 2.5C16.318 2.5 9.642 6.723 6.306 14.691z"></path><path fill="#4CAF50" d="M24 45.5c5.613 0 10.553-2.306 14.802-6.341l-5.839-5.841C30.842 35.846 27.059 38 24 38c-5.039 0-9.345-2.608-11.124-6.481l-6.571 4.819C9.642 41.277 16.318 45.5 24 45.5z"></path><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l5.839 5.841C44.196 35.123 45.5 29.837 45.5 24c0-1.538-.135-3.022-.389-4.417z"></path>
@@ -115,13 +255,38 @@ const Login = () => {
               Entrar com Google
             </button>
 
-            <GradientButton variant="variant" className="w-full text-sm sm:text-base py-2.5 sm:py-3" type="button">
+            <GradientButton 
+              variant="variant" 
+              className="w-full text-sm sm:text-base py-2.5 sm:py-3" 
+              type="button"
+              onClick={() => window.open("https://wa.me/5547996198284", "_blank")}
+            >
               Adquirir Crystal
             </GradientButton>
           </form>
 
           <p className="text-center text-xs sm:text-sm text-gray-400 mt-4 sm:mt-6">
-            Não tem uma conta? <a href="#" className="font-semibold text-primary hover:text-primary/80 transition">Adquirir Crystal</a>
+            {isSignUp ? (
+              <>
+                Já tem uma conta?{' '}
+                <button
+                  onClick={() => setIsSignUp(false)}
+                  className="font-semibold text-primary hover:text-primary/80 transition underline"
+                >
+                  Fazer Login
+                </button>
+              </>
+            ) : (
+              <>
+                Não tem uma conta?{' '}
+                <button
+                  onClick={() => setIsSignUp(true)}
+                  className="font-semibold text-primary hover:text-primary/80 transition underline"
+                >
+                  Criar Conta
+                </button>
+              </>
+            )}
           </p>
         </div>
       </div>

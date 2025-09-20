@@ -31,8 +31,9 @@ const navigation = [
   { name: "Dashboard", url: "/dashboard", icon: Home },
   { name: "Paqueras", url: "/crushes", icon: Heart },
   { name: "Crystal", url: "/chat", icon: MessageCircle },
+  { name: "Conversas", url: "/conversations", icon: MessageCircle },
   { name: "Insights", url: "/insights", icon: TrendingUp },
-  { name: "Perfil", url: "/settings", icon: Settings },
+  { name: "Personalização", url: "/personalization", icon: Sparkles },
 ];
 
 const AppLayout = () => {
@@ -117,9 +118,15 @@ const AppLayout = () => {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <NavLink to="/profile" className="flex items-center cursor-pointer">
+                    <NavLink to="/personalization" className="flex items-center cursor-pointer">
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Personalização
+                    </NavLink>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <NavLink to="/subscription" className="flex items-center cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
-                      Meu Perfil
+                      Assinatura
                     </NavLink>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>

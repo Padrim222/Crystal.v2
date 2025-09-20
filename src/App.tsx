@@ -11,6 +11,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import CrushPipeline from "./pages/CrushPipeline";
 import Chat from "./pages/Chat";
+import Conversations from "./pages/Conversations";
 import Subscription from "./pages/Subscription";
 import Insights from "./pages/Insights";
 import Personalization from "./pages/Personalization";
@@ -35,6 +36,7 @@ const App = () => (
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="crushes" element={<CrushPipeline />} />
               <Route path="chat" element={<Chat />} />
+              <Route path="conversations" element={<Conversations />} />
               <Route path="personalization" element={<Personalization />} />
               <Route path="insights" element={<Insights />} />
               <Route path="settings" element={<div>Settings Page - Coming Soon</div>} />

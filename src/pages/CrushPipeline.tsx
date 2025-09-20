@@ -3,9 +3,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus, Eye, Heart, MessageCircle, Calendar, Users } from "lucide-react";
+import { Plus, Eye, Heart, MessageCircle, Calendar, Users, MoreHorizontal } from "lucide-react";
 import { useCrushes } from "@/hooks/useCrushes";
 import { AddCrushDialog } from "@/components/AddCrushDialog";
+import { CrushDetailDialog } from "@/components/CrushDetailDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
+import type { Tables } from "@/integrations/supabase/types";
+
+type Crush = Tables<'crushes'>;
 
 const stages = [
   {
@@ -34,7 +45,10 @@ const stages = [
   }
 ];
 
-function CrushCard({ crush }: { crush: any }) {
+function CrushCard({ crush, onViewDetails }: { crush: Crush; onViewDetails: (crush: Crush) => void }) {
+  const { moveCrushStage } = useCrushes();
+  const { toast } = useToast();
+
   const formatLastInteraction = (dateString: string | null) => {
     if (!dateString) return 'Sem interação';
     
@@ -49,8 +63,21 @@ function CrushCard({ crush }: { crush: any }) {
     const diffInDays = Math.floor(diffInHours / 24);
     return `${diffInDays} dias atrás`;
   };
+
+  const handleStageChange = async (newStage: string) => {
+    try {
+      await moveCrushStage(crush.id, newStage);
+      toast({
+        title: "Estágio atualizado!",
+        description: `${crush.name} foi movida para ${newStage}`,
+      });
+    } catch (error) {
+      console.error('Error moving crush stage:', error);
+    }
+  };
+
   return (
-    <Card className="mb-3 shadow-card bg-gradient-card border-0 hover:shadow-glow transition-all duration-300 cursor-pointer">
+    <Card className="mb-3 shadow-card bg-gradient-card border-0 hover:shadow-glow transition-all duration-300 cursor-pointer group">
       <CardHeader className="pb-3">
         <div className="flex items-center space-x-3">
           <Avatar className="h-12 w-12">
@@ -62,9 +89,45 @@ function CrushCard({ crush }: { crush: any }) {
           <div className="flex-1">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-semibold">{crush.name}</CardTitle>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                <Eye className="h-3 w-3" />
-              </Button>
+              <div className="flex gap-1">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onViewDetails(crush);
+                  }}
+                >
+                  <Eye className="h-3 w-3" />
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <MoreHorizontal className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-popover border-border">
+                    <DropdownMenuItem onClick={() => handleStageChange("Primeiro Contato")}>
+                      Mover para Primeiro Contato
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleStageChange("Conversa Inicial")}>
+                      Mover para Conversa Inicial
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleStageChange("Encontro")}>
+                      Mover para Encontro
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleStageChange("Relacionamento")}>
+                      Mover para Relacionamento
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
             <CardDescription className="text-xs">
               {crush.age ? `${crush.age} anos` : 'Idade não informada'}
@@ -84,7 +147,7 @@ function CrushCard({ crush }: { crush: any }) {
   );
 }
 
-function StageColumn({ stage, crushes }: { stage: any; crushes: any[] }) {
+function StageColumn({ stage, crushes, onViewDetails }: { stage: any; crushes: Crush[]; onViewDetails: (crush: Crush) => void }) {
   return (
     <div className="flex-1 min-w-80">
       <div className="mb-4">
@@ -102,7 +165,7 @@ function StageColumn({ stage, crushes }: { stage: any; crushes: any[] }) {
 
       <div className="space-y-3 min-h-96">
         {crushes.map((crush) => (
-          <CrushCard key={crush.id} crush={crush} />
+          <CrushCard key={crush.id} crush={crush} onViewDetails={onViewDetails} />
         ))}
         
         {crushes.length === 0 && (
@@ -121,6 +184,13 @@ function StageColumn({ stage, crushes }: { stage: any; crushes: any[] }) {
 const CrushPipeline = () => {
   const { crushesByStage, stats, loading, addCrush } = useCrushes();
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [selectedCrush, setSelectedCrush] = useState<Crush | null>(null);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
+
+  const handleViewDetails = (crush: Crush) => {
+    setSelectedCrush(crush);
+    setShowDetailDialog(true);
+  };
   
   if (loading) {
     return (
@@ -172,6 +242,7 @@ const CrushPipeline = () => {
             key={stage.id}
             stage={stage}
             crushes={crushesByStage[stage.id] || []}
+            onViewDetails={handleViewDetails}
           />
         ))}
       </div>
@@ -247,6 +318,13 @@ const CrushPipeline = () => {
           setShowAddDialog(false);
           // Refresh is handled by the hook
         }}
+      />
+
+      {/* Crush Detail Dialog */}
+      <CrushDetailDialog
+        crush={selectedCrush}
+        open={showDetailDialog}
+        onOpenChange={setShowDetailDialog}
       />
     </div>
   );

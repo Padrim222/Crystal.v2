@@ -27,199 +27,119 @@ export const CrystalWelcome: React.FC<CrystalWelcomeProps> = ({
 }) => {
   const { crushes, loading } = useCrushes();
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [selectedCrush, setSelectedCrush] = useState<string | null>(null);
-
-  const handleSelectCrush = (crushId: string, crushName: string) => {
-    setSelectedCrush(crushId);
-    setTimeout(() => {
-      onStartChat(crushId, crushName);
-    }, 300);
-  };
 
   return (
-    <div className="min-h-[600px] flex flex-col">
-      {/* Crystal Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center p-6 border-b border-border/20"
-      >
-        <div className="flex justify-center mb-4">
-          <div className="relative">
-            <Avatar className="h-20 w-20">
-              <AvatarImage src="" alt="Crystal" />
-              <AvatarFallback className="bg-gradient-to-r from-coral to-crimson text-white text-2xl">
-                <Sparkles className="h-10 w-10" />
-              </AvatarFallback>
-            </Avatar>
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-              className="absolute -top-2 -right-2 bg-yellow-400 rounded-full p-1"
-            >
-              <Sparkles className="h-4 w-4 text-white" />
-            </motion.div>
-          </div>
-        </div>
+    <div className="min-h-[500px] flex flex-col">
+      {/* Header */}
+      <div className="text-center p-6">
+        <Avatar className="h-16 w-16 mx-auto mb-4">
+          <AvatarFallback className="bg-primary text-primary-foreground">
+            <Sparkles className="h-8 w-8" />
+          </AvatarFallback>
+        </Avatar>
         
-        <motion.h1 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="text-2xl font-bold bg-gradient-to-r from-coral to-crimson bg-clip-text text-transparent mb-2"
-        >
-          Olá! Eu sou a Crystal 💎
-        </motion.h1>
-        
-        <motion.p 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="text-muted-foreground max-w-md mx-auto"
-        >
-          Sua consultora pessoal de relacionamentos. Vamos conquistar juntos? 
-          Escolha sobre qual garota você quer conversar ou vamos bater um papo geral!
-        </motion.p>
-      </motion.div>
+        <h1 className="text-xl font-semibold mb-2">Crystal</h1>
+        <p className="text-muted-foreground text-sm">
+          Sua consultora de relacionamentos
+        </p>
+      </div>
 
-      {/* Quick Actions */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-        className="p-6 space-y-4"
-      >
-        <h3 className="text-lg font-semibold mb-4">Como posso te ajudar hoje?</h3>
-        
-        <div className="grid gap-3">
-          <Button
-            onClick={onGeneralChat}
-            variant="outline"
-            className="justify-start h-auto p-4 bg-gradient-to-r from-background to-muted/50 hover:from-muted/50 hover:to-muted border-primary/20"
-          >
-            <MessageCircle className="h-5 w-5 mr-3 text-coral" />
-            <div className="text-left">
-              <div className="font-medium">Conversa Geral</div>
-              <div className="text-sm text-muted-foreground">Dicas, estratégias e conselhos gerais</div>
-            </div>
-            <ArrowRight className="h-4 w-4 ml-auto" />
-          </Button>
-        </div>
-      </motion.div>
+      {/* General Chat */}
+      <div className="px-6 mb-6">
+        <Button
+          onClick={onGeneralChat}
+          variant="outline"
+          className="w-full justify-start p-4 h-auto"
+        >
+          <MessageCircle className="h-4 w-4 mr-3" />
+          <div className="text-left">
+            <div className="font-medium text-sm">Conversa Geral</div>
+            <div className="text-xs text-muted-foreground">Dicas e conselhos</div>
+          </div>
+        </Button>
+      </div>
 
       {/* Crushes Section */}
-      <div className="flex-1 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <Heart className="h-5 w-5 text-coral" />
-            Suas Crushes
-          </h3>
+      <div className="flex-1 px-6 pb-6">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-medium text-sm">Suas Crushes</h3>
           <Button
             onClick={() => setShowAddDialog(true)}
             size="sm"
-            className="bg-gradient-to-r from-coral to-crimson hover:from-coral/80 hover:to-crimson/80"
+            variant="outline"
           >
-            <Plus className="h-4 w-4 mr-2" />
-            Adicionar
+            <Plus className="h-4 w-4" />
           </Button>
         </div>
 
         {loading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-16 bg-muted/50 rounded-lg animate-pulse" />
+          <div className="space-y-2">
+            {[1, 2].map((i) => (
+              <div key={i} className="h-12 bg-muted rounded animate-pulse" />
             ))}
           </div>
         ) : crushes.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center p-8 border-2 border-dashed border-border/40 rounded-lg"
-          >
-            <Heart className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
-            <p className="text-muted-foreground mb-4">
-              Ainda não há crushes cadastradas. Que tal adicionar a primeira?
+          <div className="text-center p-6 border-2 border-dashed border-border rounded">
+            <Heart className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground mb-3">
+              Nenhuma crush cadastrada
             </p>
             <Button
               onClick={() => setShowAddDialog(true)}
               variant="outline"
+              size="sm"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Primeira Crush
+              Adicionar Primeira
             </Button>
-          </motion.div>
+          </div>
         ) : (
-          <div className="space-y-3 max-h-80 overflow-y-auto">
-            <AnimatePresence>
-              {crushes.map((crush, index) => (
-                <motion.div
-                  key={crush.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Card 
-                    className={`cursor-pointer transition-all hover:shadow-lg border-2 ${
-                      selectedCrush === crush.id 
-                        ? 'border-primary bg-primary/5' 
-                        : 'border-transparent hover:border-primary/30'
-                    }`}
-                    onClick={() => handleSelectCrush(crush.id, crush.name)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-12 w-12">
-                          <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-600 text-white">
-                            {crush.name.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        
-                        <div className="flex-1">
-                          <h4 className="font-semibold">{crush.name}</h4>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="secondary" className="text-xs">
-                              {crush.current_stage}
-                            </Badge>
-                            {crush.age && (
-                              <span className="text-xs text-muted-foreground">
-                                {crush.age} anos
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        
-                        <div className="text-right">
-                          <div className="flex items-center gap-1 mb-1">
-                            <Target className="h-3 w-3 text-coral" />
-                            <span className="text-xs font-medium">
-                              {crush.interest_level}/10
-                            </span>
-                          </div>
-                          {crush.last_interaction && (
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(crush.last_interaction).toLocaleDateString('pt-BR')}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+          <div className="space-y-2 max-h-60 overflow-y-auto">
+            {crushes.slice(0, 5).map((crush) => (
+              <Card 
+                key={crush.id}
+                className="cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => onStartChat(crush.id, crush.name)}
+              >
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={crush.photo_url || ""} />
+                      <AvatarFallback className="text-xs">
+                        {crush.name.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-sm truncate">{crush.name}</h4>
+                      <p className="text-xs text-muted-foreground">{crush.current_stage}</p>
+                    </div>
+                    
+                    <Badge variant="outline" className="text-xs">
+                      {crush.interest_level || 0}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
+      </div>
+
+      {/* WhatsApp Button */}
+      <div className="px-6 pb-4">
+        <Button
+          onClick={() => window.open('https://wa.me/5548968700906', '_blank')}
+          className="w-full bg-green-600 hover:bg-green-700 text-white"
+        >
+          <MessageCircle className="h-4 w-4 mr-2" />
+          Falar no WhatsApp
+        </Button>
       </div>
 
       <AddCrushDialog 
         open={showAddDialog} 
         onOpenChange={setShowAddDialog}
-        onCrushAdded={() => {
-          // Refresh crushes after adding
-          window.location.reload();
-        }}
+        onCrushAdded={() => setShowAddDialog(false)}
       />
     </div>
   );

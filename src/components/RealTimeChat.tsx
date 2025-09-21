@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AnimatedAIChat } from "@/components/ui/animated-ai-chat";
+import { V0AiChat } from "@/components/ui/v0-ai-chat";
 import { CrystalWelcome } from "@/components/CrystalWelcome";
 import { useConversations } from "@/hooks/useConversations";
 import { useAuth } from "@/hooks/useAuth";
@@ -286,13 +286,12 @@ export function RealTimeChat({
         </div>
       </div>
       
-      <div className="flex-1">
-        <AnimatedAIChat
-          messages={transformedMessages}
+      <div className="flex-1 flex items-center justify-center">
+        <V0AiChat
           onSendMessage={handleSendMessage}
           isGeneratingResponse={isGeneratingResponse}
-          crushName={selectedCrushName}
-          className="h-full"
+          placeholder={selectedCrushName ? `Conversar sobre ${selectedCrushName}...` : "Conversar com Crystal..."}
+          title={selectedCrushName ? `Conversando sobre ${selectedCrushName}` : "Conversar com Crystal"}
         />
       </div>
     </div>

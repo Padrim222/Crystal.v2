@@ -28,11 +28,10 @@ import {
 } from "lucide-react";
 
 const navigation = [
-  { name: "Crystal", url: "/chat", icon: MessageCircle },
-  { name: "Dashboard", url: "/dashboard", icon: Home },
+  { name: "Chat", url: "/chat", icon: MessageCircle },
   { name: "Paqueras", url: "/crushes", icon: Heart },
   { name: "Insights", url: "/insights", icon: TrendingUp },
-  { name: "Personalização", url: "/personalization", icon: Sparkles },
+  { name: "Perfil", url: "/personalization", icon: Sparkles },
 ];
 
 const AppLayout = () => {
@@ -79,21 +78,11 @@ const AppLayout = () => {
         <header className="h-16 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
           <div className="flex items-center justify-between h-full px-6">
             <div className="flex items-center gap-4">
-              <Heart className="h-8 w-8 text-primary" />
-              <span className="text-xl font-bold text-foreground">Crystal.ai</span>
+              <Heart className="h-6 w-6 text-primary" />
+              <span className="text-lg font-bold text-foreground">Crystal.ai</span>
             </div>
 
             <div className="flex items-center gap-4">
-              {/* Notifications */}
-              <Button variant="ghost" size="sm" className="relative">
-                <Bell className="h-5 w-5" />
-                {notifications > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-                    {notifications}
-                  </span>
-                )}
-              </Button>
-
               {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -116,25 +105,6 @@ const AppLayout = () => {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <NavLink to="/personalization" className="flex items-center cursor-pointer">
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      Personalização
-                    </NavLink>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <NavLink to="/subscription" className="flex items-center cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
-                      Assinatura
-                    </NavLink>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <NavLink to="/settings" className="flex items-center cursor-pointer">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Configurações
-                    </NavLink>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
                   <DropdownMenuItem 
                     onClick={handleLogout}
                     className="text-destructive focus:text-destructive cursor-pointer"
@@ -149,8 +119,8 @@ const AppLayout = () => {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 p-6 pt-20 sm:pt-6 pb-20 sm:pb-6 overflow-auto">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 p-4 pt-20 sm:pt-4 pb-20 sm:pb-4 overflow-auto">
+          <div className="max-w-6xl mx-auto">
             <Outlet />
           </div>
         </main>

@@ -63,3 +63,6 @@ verify_jwt = false
 
 [functions.imgur-upload]
 verify_jwt = false
+
+[functions.generate-favicon]
+verify_jwt = false

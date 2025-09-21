@@ -117,10 +117,10 @@ export function AddCrushDialog({
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Image Upload */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Foto (opcional)</label>
+              <label className="text-sm font-medium">Foto</label>
               <ImageUpload
                 onImageUpload={handleImageUpload}
                 currentImage={photoUrl}
@@ -133,10 +133,10 @@ export function AddCrushDialog({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nome *</FormLabel>
+                  <FormLabel>Nome</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="Ex: Maria Silva" 
+                      placeholder="Ex: Maria" 
                       {...field} 
                       className="bg-input border-border"
                     />
@@ -146,69 +146,67 @@ export function AddCrushDialog({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="age"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Idade</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number" 
-                      placeholder="Ex: 25" 
-                      {...field}
-                      className="bg-input border-border"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="current_stage"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Estágio Inicial</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="age"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Idade</FormLabel>
                     <FormControl>
-                      <SelectTrigger className="bg-input border-border">
-                        <SelectValue placeholder="Selecione o estágio" />
-                      </SelectTrigger>
+                      <Input 
+                        type="number" 
+                        placeholder="25" 
+                        {...field}
+                        className="bg-input border-border"
+                      />
                     </FormControl>
-                    <SelectContent className="bg-popover border-border">
-                      <SelectItem value="Primeiro Contato">Primeiro Contato</SelectItem>
-                      <SelectItem value="Conversa Inicial">Conversa Inicial</SelectItem>
-                      <SelectItem value="Encontro">Encontro</SelectItem>
-                      <SelectItem value="Relacionamento">Relacionamento</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="current_stage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estágio</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="bg-input border-border">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-popover border-border">
+                        <SelectItem value="Primeiro Contato">Primeiro Contato</SelectItem>
+                        <SelectItem value="Conversa Inicial">Conversa Inicial</SelectItem>
+                        <SelectItem value="Encontro">Encontro</SelectItem>
+                        <SelectItem value="Relacionamento">Relacionamento</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
               name="interest_level"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nível de Interesse (1-10)</FormLabel>
+                  <FormLabel>Interesse (1-10)</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger className="bg-input border-border">
-                        <SelectValue placeholder="Selecione o nível" />
+                        <SelectValue />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="bg-popover border-border">
                       {Array.from({ length: 10 }, (_, i) => i + 1).map((level) => (
                         <SelectItem key={level} value={level.toString()}>
-                          {level} - {
-                            level <= 3 ? "Baixo" :
-                            level <= 6 ? "Médio" :
-                            level <= 8 ? "Alto" : "Muito Alto"
-                          }
+                          {level}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -229,10 +227,10 @@ export function AddCrushDialog({
               </Button>
               <Button 
                 type="submit" 
-                variant="premium" 
                 disabled={isLoading}
+                className="bg-primary hover:bg-primary/90"
               >
-                {isLoading ? "Adicionando..." : "Adicionar Paquera"}
+                {isLoading ? "Adicionando..." : "Adicionar"}
               </Button>
             </div>
           </form>

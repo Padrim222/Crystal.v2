@@ -124,23 +124,58 @@ export function RealTimeChat({
           content: msg.content
         }));
 
-        // Enhanced context for Crystal based on conversation type and crush info
-        let contextInfo = "";
-        if (selectedCrushId && selectedCrushName) {
-          contextInfo = `Você está ajudando o usuário com a conquista de ${selectedCrushName}. `;
-        } else {
-          contextInfo = "Esta é uma conversa geral sobre relacionamentos. ";
-        }
+      // Get user's personalization settings
+      const { data: userSettings } = await supabase
+        .from('user_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
 
-        // Call Crystal chat edge function
-        const { data, error } = await supabase.functions.invoke('crystal-chat', {
-          body: {
-            message: messageContent,
-            conversationHistory: conversationHistory,
-            contextInfo: contextInfo,
-            crushName: selectedCrushName
-          }
-        });
+      // Enhanced context for Crystal based on conversation type, crush info, and user personalization
+      let contextInfo = "";
+      let personalityModifier = "";
+      
+      if (userSettings) {
+        // Build personality context based on user preferences
+        const traits = [];
+        if (userSettings.personality_safada > 70) traits.push("mais safada e provocante");
+        if (userSettings.personality_fofa > 70) traits.push("mais fofa e carinhosa");
+        if (userSettings.personality_conscious > 70) traits.push("mais consciente e reflexiva");
+        if (userSettings.personality_calma > 70) traits.push("mais calma e paciente");
+        
+        const behaviors = [];
+        if (userSettings.behavior_palavrao) behaviors.push("usar palavrões quando apropriado");
+        if (userSettings.behavior_humor) behaviors.push("usar humor");
+        if (userSettings.behavior_direta) behaviors.push("ser mais direta");
+        if (userSettings.behavior_romantica) behaviors.push("ser mais romântica");
+        
+        if (traits.length > 0) {
+          personalityModifier += `PERSONALIDADE AJUSTADA: Seja ${traits.join(', ')}. `;
+        }
+        if (behaviors.length > 0) {
+          personalityModifier += `COMPORTAMENTOS: ${behaviors.join(', ')}. `;
+        }
+        if (userSettings.custom_prompt) {
+          personalityModifier += `INSTRUÇÕES PERSONALIZADAS: ${userSettings.custom_prompt} `;
+        }
+      }
+
+      if (selectedCrushId && selectedCrushName) {
+        contextInfo = `Você está ajudando o usuário com a conquista de ${selectedCrushName}. `;
+      } else {
+        contextInfo = "Esta é uma conversa geral sobre relacionamentos. ";
+      }
+
+      // Call Crystal chat edge function
+      const { data, error } = await supabase.functions.invoke('crystal-chat', {
+        body: {
+          message: messageContent,
+          conversationHistory: conversationHistory,
+          contextInfo: contextInfo + personalityModifier,
+          crushName: selectedCrushName,
+          userId: user.id
+        }
+      });
 
         if (error) {
           console.error('Error calling crystal-chat function:', error);

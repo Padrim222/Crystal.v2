@@ -33,15 +33,13 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/*" element={<AppLayout />}>
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="crushes" element={<CrushPipeline />} />
-              <Route path="chat" element={<Chat />} />
-              <Route path="conversations" element={<Conversations />} />
-              <Route path="personalization" element={<Personalization />} />
-              <Route path="insights" element={<Insights />} />
-              <Route path="settings" element={<div>Settings Page - Coming Soon</div>} />
-              <Route path="profile" element={<div>Profile Page - Coming Soon</div>} />
-              <Route path="subscription" element={<Subscription />} />
+            <Route path="chat" element={<Chat />} />
+            <Route path="crushes" element={<CrushPipeline />} />
+            <Route path="insights" element={<Insights />} />
+            <Route path="personalization" element={<Personalization />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="conversations" element={<Conversations />} />
+            <Route path="subscription" element={<Subscription />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

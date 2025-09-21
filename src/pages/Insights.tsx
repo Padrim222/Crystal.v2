@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/useAuth";
 import { useInsights } from "@/hooks/useInsights";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Brain, 
   Heart, 
@@ -13,10 +14,12 @@ import {
   RefreshCw,
   Sparkles,
   Target,
-  Calendar
+  Calendar,
+  Clock,
+  Timer
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { format } from "date-fns";
+import { format, differenceInHours, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const Insights = () => {
@@ -29,13 +32,67 @@ const Insights = () => {
     refreshInsights 
   } = useInsights();
   const [generatingInsights, setGeneratingInsights] = useState(false);
+  const [lastGenerated, setLastGenerated] = useState<Date | null>(null);
+  const [timeUntilNext, setTimeUntilNext] = useState<string>("");
+
+  // Check last generation time and set up timer
+  useEffect(() => {
+    const checkLastGeneration = async () => {
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('conversation_insights')
+        .select('created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (data?.created_at) {
+        const lastGen = new Date(data.created_at);
+        setLastGenerated(lastGen);
+      }
+    };
+
+    checkLastGeneration();
+  }, [user, insights]);
+
+  // Update timer every minute
+  useEffect(() => {
+    const updateTimer = () => {
+      if (!lastGenerated) {
+        setTimeUntilNext("Pronto para gerar");
+        return;
+      }
+
+      const hoursSinceGeneration = differenceInHours(new Date(), lastGenerated);
+      
+      if (hoursSinceGeneration >= 24) {
+        setTimeUntilNext("Pronto para gerar");
+      } else {
+        const hoursLeft = 24 - hoursSinceGeneration;
+        setTimeUntilNext(`${hoursLeft}h restantes`);
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, [lastGenerated]);
+
+  const canGenerate = () => {
+    if (!lastGenerated) return true;
+    return differenceInHours(new Date(), lastGenerated) >= 24;
+  };
 
   const handleGenerateInsights = async () => {
-    if (!user) return;
+    if (!user || !canGenerate()) return;
     
     setGeneratingInsights(true);
     try {
       await generateInsights();
+      setLastGenerated(new Date());
       toast({
         title: "Insights Gerados!",
         description: "Crystal analisou suas conversas e criou novos insights.",
@@ -87,17 +144,34 @@ const Insights = () => {
         </p>
       </div>
 
-      {/* Action Button */}
-      <div className="text-center">
+      {/* Action Button with Timer */}
+      <div className="text-center space-y-3">
+        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+          <Timer className="h-4 w-4" />
+          <span>{timeUntilNext}</span>
+          {lastGenerated && (
+            <>
+              <span>•</span>
+              <span>Última vez: {formatDistanceToNow(lastGenerated, { locale: ptBR, addSuffix: true })}</span>
+            </>
+          )}
+        </div>
+        
         <Button
           onClick={handleGenerateInsights}
-          disabled={generatingInsights || loading}
+          disabled={generatingInsights || loading || !canGenerate()}
           size="lg"
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50"
         >
           <Sparkles className={`h-4 w-4 mr-2 ${generatingInsights ? 'animate-pulse' : ''}`} />
-          {generatingInsights ? 'Gerando...' : 'Gerar Insights'}
+          {generatingInsights ? 'Gerando...' : canGenerate() ? 'Gerar Insights' : 'Aguardar 24h'}
         </Button>
+        
+        {!canGenerate() && (
+          <p className="text-xs text-muted-foreground">
+            Insights são gerados a cada 24h para garantir análises precisas
+          </p>
+        )}
       </div>
 
       {/* Insights List */}

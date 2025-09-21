@@ -228,7 +228,7 @@ export function AddCrushDialog({
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="bg-primary hover:bg-primary/90"
+                className="bg-gradient-to-r from-coral to-crimson hover:from-coral/90 hover:to-crimson/90"
               >
                 {isLoading ? "Adicionando..." : "Adicionar"}
               </Button>

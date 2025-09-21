@@ -234,7 +234,7 @@ export function RealTimeChat({
     );
   }
 
-  // Transform messages for AnimatedAIChat component
+  // Transform messages for display
   const transformedMessages = (activeConversation.messages || []).map(msg => ({
     id: msg.id,
     content: msg.content,
@@ -249,10 +249,19 @@ export function RealTimeChat({
     return 'Conversa com Crystal';
   };
 
+  // Custom markdown renderer for Crystal responses
+  const renderMessage = (content: string) => {
+    return content
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/`(.*?)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm">$1</code>')
+      .replace(/\n/g, '<br/>');
+  };
+
   return (
-    <div className="h-[600px] flex flex-col">
-      {/* Chat Header with back button */}
-      <div className="flex items-center gap-3 p-4 border-b border-border/40 bg-background/80">
+    <div className="h-full flex flex-col max-w-4xl mx-auto">
+      {/* Chat Header */}
+      <div className="flex items-center gap-3 p-4 border-b border-border/40 bg-background/80 shrink-0">
         <Button 
           variant="ghost" 
           size="sm" 
@@ -262,36 +271,110 @@ export function RealTimeChat({
           <ArrowLeft className="h-4 w-4" />
         </Button>
         
-        <Avatar className="h-10 w-10">
+        <Avatar className="h-8 w-8">
           <AvatarImage src="" alt="Crystal" />
           <AvatarFallback className="bg-gradient-to-r from-coral to-crimson text-white">
-            <Sparkles className="h-5 w-5" />
+            <Sparkles className="h-4 w-4" />
           </AvatarFallback>
         </Avatar>
         
         <div className="flex-1">
-          <h3 className="font-semibold">{getChatTitle()}</h3>
+          <h3 className="font-semibold text-sm">{getChatTitle()}</h3>
           <div className="flex items-center gap-2">
             {selectedCrushName && (
               <Badge variant="secondary" className="text-xs">
                 <Heart className="h-3 w-3 mr-1" />
-                Crush: {selectedCrushName}
+                {selectedCrushName}
               </Badge>
             )}
             <Badge variant="outline" className="text-xs">
-              <MessageCircle className="h-3 w-3 mr-1" />
-              {transformedMessages.length} mensagens
+              {transformedMessages.length} msgs
             </Badge>
           </div>
         </div>
       </div>
       
-      <div className="flex-1 flex items-center justify-center">
+      {/* Messages Area */}
+      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+        <div className="space-y-4 pb-4">
+          {transformedMessages.map((message, index) => (
+            <motion.div
+              key={message.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className={`flex gap-3 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              {message.sender === 'crystal' && (
+                <Avatar className="h-8 w-8 shrink-0">
+                  <AvatarFallback className="bg-gradient-to-r from-coral to-crimson text-white">
+                    <Sparkles className="h-4 w-4" />
+                  </AvatarFallback>
+                </Avatar>
+              )}
+              
+              <div className={`max-w-[80%] ${message.sender === 'user' ? 'order-first' : ''}`}>
+                <div 
+                  className={`p-3 rounded-2xl ${
+                    message.sender === 'user' 
+                      ? 'bg-primary text-primary-foreground ml-auto' 
+                      : 'bg-muted text-foreground'
+                  }`}
+                >
+                  <div 
+                    className="text-sm leading-relaxed"
+                    dangerouslySetInnerHTML={{ 
+                      __html: renderMessage(message.content) 
+                    }}
+                  />
+                </div>
+                <div className={`text-xs text-muted-foreground mt-1 ${
+                  message.sender === 'user' ? 'text-right' : 'text-left'
+                }`}>
+                  {format(message.timestamp, 'HH:mm', { locale: ptBR })}
+                </div>
+              </div>
+              
+              {message.sender === 'user' && (
+                <Avatar className="h-8 w-8 shrink-0">
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    <User className="h-4 w-4" />
+                  </AvatarFallback>
+                </Avatar>
+              )}
+            </motion.div>
+          ))}
+          
+          {isGeneratingResponse && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex gap-3 justify-start"
+            >
+              <Avatar className="h-8 w-8 shrink-0">
+                <AvatarFallback className="bg-gradient-to-r from-coral to-crimson text-white">
+                  <Sparkles className="h-4 w-4" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="bg-muted text-foreground p-3 rounded-2xl">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="text-sm">Crystal está digitando...</span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </ScrollArea>
+
+      {/* Input Area */}
+      <div className="shrink-0 p-4 border-t border-border/40">
         <V0AiChat
           onSendMessage={handleSendMessage}
           isGeneratingResponse={isGeneratingResponse}
           placeholder={selectedCrushName ? `Conversar sobre ${selectedCrushName}...` : "Conversar com Crystal..."}
-          title={selectedCrushName ? `Conversando sobre ${selectedCrushName}` : "Conversar com Crystal"}
+          title=""
+          showTitle={false}
         />
       </div>
     </div>

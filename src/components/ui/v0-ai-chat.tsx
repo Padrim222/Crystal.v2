@@ -76,13 +76,15 @@ interface V0AiChatProps {
     isGeneratingResponse?: boolean;
     placeholder?: string;
     title?: string;
+    showTitle?: boolean;
 }
 
 export function V0AiChat({ 
     onSendMessage, 
     isGeneratingResponse = false,
     placeholder = "Conversar com Crystal...",
-    title = "O que posso te ajudar hoje?"
+    title = "O que posso te ajudar hoje?",
+    showTitle = true
 }: V0AiChatProps) {
     const [value, setValue] = useState("");
     const { textareaRef, adjustHeight } = useAutoResizeTextarea({
@@ -111,9 +113,11 @@ export function V0AiChat({
 
     return (
         <div className="flex flex-col items-center w-full max-w-4xl mx-auto p-4 space-y-8">
-            <h1 className="text-4xl font-bold text-foreground text-center">
-                {title}
-            </h1>
+            {showTitle && (
+                <h1 className="text-4xl font-bold text-foreground text-center">
+                    {title}
+                </h1>
+            )}
 
             <div className="w-full">
                 <div className="relative bg-card rounded-xl border border-border shadow-card">

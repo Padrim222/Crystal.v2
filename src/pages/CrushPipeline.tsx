@@ -190,6 +190,7 @@ function DroppableStageColumn({ stage, crushes, onViewDetails }: DroppableStageC
 
 const CrushPipeline = () => {
   const { crushesByStage, stats, loading, updateCrushPosition } = useCrushes();
+  const { toast } = useToast();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [selectedCrush, setSelectedCrush] = useState<Crush | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
@@ -248,18 +249,21 @@ const CrushPipeline = () => {
       }
     }
 
-    if (!targetStage) return;
-
-    // If it's the same stage and position, do nothing
-    if (activeCrush.current_stage === targetStage) {
-      const currentIndex = crushesByStage[targetStage]?.findIndex(c => c.id === activeId) || 0;
-      if (currentIndex === targetIndex) return;
-    }
+    if (!targetStage || targetStage === activeCrush.current_stage) return;
 
     try {
       await updateCrushPosition(activeId, targetStage, targetIndex);
+      toast({
+        title: "Paquera movida!",
+        description: `${activeCrush.name} foi movida para ${targetStage}`,
+      });
     } catch (error) {
       console.error('Error updating crush position:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível mover a paquera",
+        variant: "destructive"
+      });
     }
   };
 
@@ -295,53 +299,81 @@ const CrushPipeline = () => {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="space-y-4">
+      <div className="space-y-4 p-4 md:p-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-foreground">Paqueras</h1>
+          <h1 className="text-xl md:text-2xl font-semibold text-foreground">Paqueras</h1>
           <Button 
             onClick={() => setShowAddDialog(true)}
             size="sm"
             className="gap-2"
           >
             <Plus className="h-4 w-4" />
-            Adicionar
+            <span className="hidden sm:inline">Adicionar</span>
           </Button>
         </div>
 
-        {/* Pipeline Columns */}
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        {/* Pipeline Columns - Mobile optimized */}
+        <div className="flex gap-3 overflow-x-auto pb-4 md:gap-4">
           {stages.map((stage) => (
-            <DroppableStageColumn
-              key={stage.id}
-              stage={stage}
-              crushes={crushesByStage[stage.id] || []}
-              onViewDetails={handleViewDetails}
-            />
+            <div key={stage.id} className="flex-1 min-w-[280px] md:min-w-72">
+              <div className="mb-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <stage.icon className="h-4 w-4 text-primary" />
+                  <h3 className="font-medium text-sm text-foreground">
+                    {stage.title}
+                  </h3>
+                  <Badge variant="outline" className="text-xs h-5 px-2">
+                    {(crushesByStage[stage.id] || []).length}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="min-h-[300px] md:min-h-80 p-2 rounded-lg border border-dashed border-border/50 bg-muted/20">
+                <SortableContext items={(crushesByStage[stage.id] || []).map(c => c.id)} strategy={verticalListSortingStrategy}>
+                  {(crushesByStage[stage.id] || []).map((crush) => (
+                    <SortableCrushCard 
+                      key={crush.id}
+                      crush={crush} 
+                      onViewDetails={handleViewDetails}
+                    />
+                  ))}
+                </SortableContext>
+                
+                {(crushesByStage[stage.id] || []).length === 0 && (
+                  <div className="flex items-center justify-center h-24 text-muted-foreground/50">
+                    <div className="text-center">
+                      <stage.icon className="h-6 w-6 mx-auto mb-2" />
+                      <p className="text-xs">Vazio</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           ))}
         </div>
 
-        {/* Simple Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Card className="p-3">
+        {/* Simple Stats - Mobile optimized */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
+          <Card className="p-2 md:p-3">
             <div className="text-center">
               <div className="text-lg font-semibold text-primary">{stats.total}</div>
               <div className="text-xs text-muted-foreground">Total</div>
             </div>
           </Card>
-          <Card className="p-3">
+          <Card className="p-2 md:p-3">
             <div className="text-center">
               <div className="text-lg font-semibold">{stats.byStage['Conversa Inicial'] || 0}</div>
               <div className="text-xs text-muted-foreground">Conversas</div>
             </div>
           </Card>
-          <Card className="p-3">
+          <Card className="p-2 md:p-3">
             <div className="text-center">
               <div className="text-lg font-semibold">{stats.byStage['Encontro'] || 0}</div>
               <div className="text-xs text-muted-foreground">Encontros</div>
             </div>
           </Card>
-          <Card className="p-3">
+          <Card className="p-2 md:p-3">
             <div className="text-center">
               <div className="text-lg font-semibold">{stats.successRate}%</div>
               <div className="text-xs text-muted-foreground">Sucesso</div>

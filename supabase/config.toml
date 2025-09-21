@@ -54,3 +54,6 @@ verify_jwt = false
 
 [functions.crystal-analytics]
 verify_jwt = true
+
+[functions.crystal-chat]
+verify_jwt = true

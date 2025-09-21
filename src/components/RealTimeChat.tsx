@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useConversations } from "@/hooks/useConversations";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Send, 
   Bot, 
@@ -82,26 +83,51 @@ export function RealTimeChat({
       // Send user message
       await sendMessage(activeConversation.id, messageContent, 'user');
 
-      // Generate Crystal's response
+      // Generate Crystal's response using OpenAI
       if (type === 'crystal_chat') {
         setIsGeneratingResponse(true);
         
-        // Simulate Crystal thinking and responding
-        setTimeout(async () => {
-          const responses = [
-            "Entendo! Vamos trabalhar juntas nessa conquista. Que tal começarmos analisando o perfil dela?",
-            "Ótima pergunta! Baseado na minha experiência, eu sugiro uma abordagem mais sutil primeiro.",
-            "Adorei seu interesse em melhorar! Vamos criar uma estratégia personalizada para você.",
-            "Perfeito! Deixa eu te dar algumas dicas que sempre funcionam bem nessa situação.",
-            "Vejo que você está realmente comprometido! Isso é meio caminho andado para o sucesso.",
-            "Excelente! Vamos usar minha análise comportamental para otimizar sua abordagem.",
-          ];
+        try {
+          // Prepare conversation history for context
+          const conversationHistory = messages.slice(-10).map(msg => ({
+            role: msg.sender === 'user' ? 'user' : 'assistant',
+            content: msg.content
+          }));
+
+          // Call Crystal chat edge function
+          const { data, error } = await supabase.functions.invoke('crystal-chat', {
+            body: {
+              message: messageContent,
+              conversationHistory: conversationHistory
+            }
+          });
+
+          if (error) {
+            console.error('Error calling crystal-chat function:', error);
+            throw new Error(error.message || 'Erro ao conectar com a Crystal');
+          }
+
+          if (data?.response) {
+            await sendMessage(activeConversation.id, data.response, 'crystal');
+          } else {
+            throw new Error('Resposta inválida da Crystal');
+          }
           
-          const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+        } catch (error) {
+          console.error('Crystal AI error:', error);
           
-          await sendMessage(activeConversation.id, randomResponse, 'crystal');
+          // Fallback response
+          const fallbackResponse = "Ops! Tive um problema técnico agora, mas estou aqui para te ajudar. Pode repetir sua pergunta? 😊";
+          await sendMessage(activeConversation.id, fallbackResponse, 'crystal');
+          
+          toast({
+            title: "Aviso",
+            description: "Crystal teve um problema momentâneo, mas já está funcionando novamente.",
+            variant: "default"
+          });
+        } finally {
           setIsGeneratingResponse(false);
-        }, 1500 + Math.random() * 2000); // Random delay between 1.5-3.5s
+        }
       }
 
     } catch (error) {

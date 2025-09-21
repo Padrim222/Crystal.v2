@@ -10,10 +10,10 @@ export function SparklesHero() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   
-  // Redirect authenticated users to dashboard
+  // Redirect authenticated users to chat
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard");
+      navigate("/chat");
     }
   }, [isAuthenticated, navigate]);
   

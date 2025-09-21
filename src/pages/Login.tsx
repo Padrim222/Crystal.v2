@@ -24,7 +24,7 @@ const Login = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard");
+      navigate("/chat");
     }
   }, [isAuthenticated, navigate]);
 
@@ -62,7 +62,7 @@ const Login = () => {
     } else {
       const result = await signIn(formData.email, formData.password);
       if (!result.error) {
-        navigate("/dashboard");
+        navigate("/chat");
       }
     }
   };
@@ -76,7 +76,7 @@ const Login = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: `${window.location.origin}/chat`
         }
       });
       

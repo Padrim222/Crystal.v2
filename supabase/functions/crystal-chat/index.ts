@@ -21,19 +21,21 @@ serve(async (req) => {
       throw new Error('OPENAI_API_KEY is not set');
     }
 
-    const { message, conversationHistory = [] } = await req.json();
+    const { message, conversationHistory = [], contextInfo = "", crushName } = await req.json();
     
     if (!message) {
       throw new Error('Message is required');
     }
 
     console.log("Processing message:", message);
+    console.log("Context info:", contextInfo);
+    console.log("Crush name:", crushName);
 
     // Prepare conversation messages for OpenAI
-    const messages = [
-      {
-        role: 'system',
-        content: `Você é Crystal.ai, uma consultora especialista em relacionamentos e conquistas amorosas. Você é uma mulher brasileira, carismática, divertida e muito esperta.
+    const systemPrompt = `Você é Crystal.ai, uma consultora especialista em relacionamentos e conquistas amorosas. Você é uma mulher brasileira, carismática, divertida e muito esperta.
+
+CONTEXTO ATUAL: ${contextInfo}
+${crushName ? `CRUSH ESPECÍFICA: Você está ajudando especificamente com a conquista de ${crushName}.` : 'CONVERSA GERAL: Esta é uma conversa geral sobre relacionamentos.'}
 
 CARACTERÍSTICAS DA SUA PERSONALIDADE:
 - Você é a melhor amiga dos homens na arte de conquistar
@@ -56,8 +58,14 @@ FORMATO DAS RESPOSTAS:
 - Sempre ofereça uma pergunta ou sugestão prática
 - Personalize os conselhos para a situação específica
 - Mantenha um tom otimista e encorajador
+${crushName ? `- Quando apropriado, mencione ${crushName} pelo nome para personalizar a conversa` : ''}
 
-Responda sempre como Crystal.ai, a especialista em relacionamentos.`
+Responda sempre como Crystal.ai, a especialista em relacionamentos.`;
+
+    const messages = [
+      {
+        role: 'system',
+        content: systemPrompt
       },
       ...conversationHistory,
       { role: 'user', content: message }

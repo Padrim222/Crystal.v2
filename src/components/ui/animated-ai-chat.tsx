@@ -26,13 +26,15 @@ interface AnimatedAIChatProps {
   onSendMessage: (message: string) => void;
   isGeneratingResponse: boolean;
   className?: string;
+  crushName?: string;
 }
 
 export const AnimatedAIChat: React.FC<AnimatedAIChatProps> = ({
   messages,
   onSendMessage,
   isGeneratingResponse,
-  className = ""
+  className = "",
+  crushName
 }) => {
   const [input, setInput] = useState("");
   const [showSparkles, setShowSparkles] = useState(false);
@@ -128,67 +130,131 @@ export const AnimatedAIChat: React.FC<AnimatedAIChatProps> = ({
           className="h-full overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-primary/20"
         >
           <AnimatePresence>
-            {messages.map((message, index) => (
+            {messages.length === 0 ? (
+              // Welcome message and suggestions when no messages
               <motion.div
-                key={message.id}
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                transition={{ 
-                  duration: 0.4, 
-                  delay: index * 0.1,
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 30
-                }}
-                className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-6 p-4"
               >
+                {/* Welcome message */}
+                <div className="text-center">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.2, type: "spring" }}
+                    className="bg-gradient-to-br from-muted/80 to-muted/40 border border-coral/20 rounded-2xl p-6 max-w-sm mx-auto"
+                  >
+                    <div className="flex items-center justify-center mb-3">
+                      <Sparkles className="h-6 w-6 text-coral" />
+                    </div>
+                    <p className="text-sm text-center text-foreground">
+                      Oi! 👋 Sou a Crystal e estou aqui para te ajudar a conquistar! 
+                      {crushName ? ` Vamos conversar sobre a ${crushName}?` : " Sobre o que você quer conversar?"}
+                    </p>
+                  </motion.div>
+                </div>
+
+                {/* Suggestion buttons */}
                 <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  className={`max-w-[75%] rounded-2xl p-4 relative ${
-                    message.sender === 'user'
-                      ? 'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20'
-                      : 'bg-gradient-to-br from-muted to-muted/60 text-foreground border border-border/40 shadow-lg'
-                  }`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="space-y-3"
                 >
-                  {message.sender === 'crystal' && (
-                    <motion.div
-                      initial={{ scale: 0, rotate: -180 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      transition={{ delay: 0.2, type: "spring" }}
-                      className="absolute -top-2 -left-2 bg-gradient-to-r from-coral to-crimson rounded-full p-1"
-                    >
-                      <Sparkles className="h-3 w-3 text-white" />
-                    </motion.div>
-                  )}
-                  
-                  <motion.p 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                    className="text-sm leading-relaxed"
-                  >
-                    {message.content}
-                  </motion.p>
-                  
-                  <motion.p 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.4 }}
-                    className={`text-xs mt-2 ${
-                      message.sender === 'user' 
-                        ? 'text-primary-foreground/70' 
-                        : 'text-muted-foreground/70'
-                    }`}
-                  >
-                    {message.timestamp.toLocaleTimeString('pt-BR', { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
-                  </motion.p>
+                  <p className="text-xs text-muted-foreground text-center mb-4">
+                    Sugestões para começar:
+                  </p>
+                  <div className="grid gap-2">
+                    {crushName ? [
+                      `Como posso conquistar a ${crushName}?`,
+                      `Que assunto devo puxar com a ${crushName}?`,
+                      `A ${crushName} está interessada em mim?`,
+                      `Como chamar a ${crushName} para sair?`
+                    ] : [
+                      "Como iniciar uma conversa interessante?",
+                      "Dicas para ser mais confiante",
+                      "Como interpretar sinais de interesse",
+                      "Estratégias para o primeiro encontro"
+                    ].map((suggestion, index) => (
+                      <motion.button
+                        key={suggestion}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.5 + index * 0.1 }}
+                        onClick={() => onSendMessage(suggestion)}
+                        className="text-left p-3 rounded-lg border border-border/40 hover:border-primary/40 hover:bg-muted/50 transition-all text-sm"
+                      >
+                        {suggestion}
+                      </motion.button>
+                    ))}
+                  </div>
                 </motion.div>
               </motion.div>
-            ))}
+            ) : (
+              // Regular messages
+              messages.map((message, index) => (
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                  transition={{ 
+                    duration: 0.4, 
+                    delay: index * 0.1,
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30
+                  }}
+                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    className={`max-w-[75%] rounded-2xl p-4 relative ${
+                      message.sender === 'user'
+                        ? 'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20'
+                        : 'bg-gradient-to-br from-muted to-muted/60 text-foreground border border-border/40 shadow-lg'
+                    }`}
+                  >
+                    {message.sender === 'crystal' && (
+                      <motion.div
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ delay: 0.2, type: "spring" }}
+                        className="absolute -top-2 -left-2 bg-gradient-to-r from-coral to-crimson rounded-full p-1"
+                      >
+                        <Sparkles className="h-3 w-3 text-white" />
+                      </motion.div>
+                    )}
+                    
+                    <motion.p 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                      className="text-sm leading-relaxed"
+                    >
+                      {message.content}
+                    </motion.p>
+                    
+                    <motion.p 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.4 }}
+                      className={`text-xs mt-2 ${
+                        message.sender === 'user' 
+                          ? 'text-primary-foreground/70' 
+                          : 'text-muted-foreground/70'
+                      }`}
+                    >
+                      {message.timestamp.toLocaleTimeString('pt-BR', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
+                    </motion.p>
+                  </motion.div>
+                </motion.div>
+              ))
+            )}
           </AnimatePresence>
 
           {/* Typing Indicator */}

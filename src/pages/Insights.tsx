@@ -1,296 +1,280 @@
-import React from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  TrendingUp, 
-  MessageCircle, 
-  Heart, 
-  Target,
-  Calendar,
-  BarChart3,
-  Users,
-  Zap,
-  Clock,
-  Star
-} from "lucide-react";
-import { useInsights } from "@/hooks/useInsights";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/useAuth";
-import { format, subDays, isAfter } from "date-fns";
+import { useInsights } from "@/hooks/useInsights";
+import { useToast } from "@/hooks/use-toast";
+import { 
+  Brain, 
+  TrendingUp, 
+  Heart, 
+  MessageCircle, 
+  Lightbulb,
+  RefreshCw,
+  Sparkles,
+  Target,
+  Calendar
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const Insights = () => {
   const { user } = useAuth();
-  const { data: insightsData, loading } = useInsights();
+  const { toast } = useToast();
+  const { 
+    insights, 
+    loading, 
+    generateInsights, 
+    refreshInsights 
+  } = useInsights();
+  const [generatingInsights, setGeneratingInsights] = useState(false);
 
-  if (loading) {
-    return (
-      <div className="container mx-auto p-6 space-y-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-muted rounded w-1/3"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-32 bg-muted rounded"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const totalCrushes = insightsData?.crushes?.length || 0;
-  const totalConversations = insightsData?.conversations?.length || 0;
-  const totalMessages = insightsData?.conversations?.reduce((acc: number, conv) => {
-    const messageCount = Array.isArray(conv.messages) ? conv.messages.length : 0;
-    return acc + messageCount;
-  }, 0) || 0;
-  
-  // Calculate recent activity (last 7 days)
-  const recentDate = subDays(new Date(), 7);
-  const recentConversations = insightsData?.conversations?.filter(conv => 
-    conv.started_at && isAfter(new Date(conv.started_at), recentDate)
-  ).length || 0;
-
-  // Calculate success metrics
-  const activeCrushes = insightsData?.crushes?.filter(crush => 
-    crush.current_stage !== 'Não Interessada' && (crush.interest_level || 0) > 50
-  ).length || 0;
-  
-  const successRate = totalCrushes > 0 ? (activeCrushes / totalCrushes) * 100 : 0;
-
-  // Stage distribution
-  const stageDistribution = insightsData?.crushes?.reduce((acc, crush) => {
-    const stage = crush.current_stage || 'Primeiro Contato';
-    acc[stage] = (acc[stage] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>) || {};
-
-  const insights = [
-    {
-      title: "Conquistas Ativas",
-      value: activeCrushes,
-      total: totalCrushes,
-      icon: Heart,
-      color: "text-coral",
-      bgColor: "bg-coral/10"
-    },
-    {
-      title: "Conversas Iniciadas",
-      value: totalConversations,
-      change: `+${recentConversations} esta semana`,
-      icon: MessageCircle,
-      color: "text-crimson",
-      bgColor: "bg-crimson/10"
-    },
-    {
-      title: "Mensagens Trocadas",
-      value: totalMessages,
-      icon: Zap,
-      color: "text-blue-500",
-      bgColor: "bg-blue-500/10"
-    },
-    {
-      title: "Taxa de Sucesso",
-      value: `${Math.round(successRate)}%`,
-      icon: TrendingUp,
-      color: "text-green-500",
-      bgColor: "bg-green-500/10"
+  const handleGenerateInsights = async () => {
+    if (!user) return;
+    
+    setGeneratingInsights(true);
+    try {
+      await generateInsights();
+      toast({
+        title: "Insights Gerados!",
+        description: "Crystal analisou suas conversas e criou novos insights.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar insights no momento.",
+        variant: "destructive"
+      });
+    } finally {
+      setGeneratingInsights(false);
     }
-  ];
+  };
+
+  const getInsightIcon = (type: string) => {
+    switch (type) {
+      case 'improvement_tip':
+        return <Lightbulb className="h-5 w-5 text-yellow-500" />;
+      case 'relationship_analysis':
+        return <Heart className="h-5 w-5 text-red-500" />;
+      case 'next_steps':
+        return <Target className="h-5 w-5 text-blue-500" />;
+      default:
+        return <Brain className="h-5 w-5 text-purple-500" />;
+    }
+  };
+
+  const getInsightColor = (type: string) => {
+    switch (type) {
+      case 'improvement_tip':
+        return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
+      case 'relationship_analysis':
+        return 'bg-red-500/10 text-red-500 border-red-500/20';
+      case 'next_steps':
+        return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+      default:
+        return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
+    }
+  };
+
+  const getInsightLabel = (type: string) => {
+    switch (type) {
+      case 'improvement_tip':
+        return 'Dica de Melhoria';
+      case 'relationship_analysis':
+        return 'Análise de Relacionamento';
+      case 'next_steps':
+        return 'Próximos Passos';
+      default:
+        return 'Insight';
+    }
+  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="container mx-auto p-6 space-y-6"
-    >
-      <div className="flex items-center gap-3">
-        <BarChart3 className="h-8 w-8 text-coral" />
-        <h1 className="text-3xl font-bold text-foreground">Insights</h1>
-      </div>
+    <div className="container mx-auto p-6 max-w-6xl">
+      {/* Header */}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between mb-8"
+      >
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
+            <Brain className="h-8 w-8 text-primary" />
+            Insights Crystal
+          </h1>
+          <p className="text-muted-foreground">
+            Análises personalizadas das suas conversas e relacionamentos
+          </p>
+        </div>
 
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {insights.map((insight, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
+        <div className="flex gap-3">
+          <Button
+            onClick={refreshInsights}
+            variant="outline"
+            disabled={loading}
           >
-            <Card className="relative overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {insight.title}
-                </CardTitle>
-                <div className={`p-2 rounded-lg ${insight.bgColor}`}>
-                  <insight.icon className={`h-4 w-4 ${insight.color}`} />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-foreground">
-                  {insight.value}
-                </div>
-                {insight.change && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {insight.change}
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Atualizar
+          </Button>
+          
+          <Button
+            onClick={handleGenerateInsights}
+            disabled={generatingInsights || loading}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          >
+            <Sparkles className={`h-4 w-4 mr-2 ${generatingInsights ? 'animate-pulse' : ''}`} />
+            {generatingInsights ? 'Gerando...' : 'Gerar Insights'}
+          </Button>
+        </div>
+      </motion.div>
+
+      {/* Stats Cards */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
+      >
+        <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/20">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total de Insights</p>
+                <p className="text-2xl font-bold text-foreground">{insights.length}</p>
+              </div>
+              <Brain className="h-8 w-8 text-purple-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/20">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Dicas de Melhoria</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {insights.filter(i => i.insight_type === 'improvement_tip').length}
+                </p>
+              </div>
+              <Lightbulb className="h-8 w-8 text-yellow-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-red-500/10 to-pink-500/10 border-red-500/20">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Análises</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {insights.filter(i => i.insight_type === 'relationship_analysis').length}
+                </p>
+              </div>
+              <Heart className="h-8 w-8 text-red-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/20">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Próximos Passos</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {insights.filter(i => i.insight_type === 'next_steps').length}
+                </p>
+              </div>
+              <Target className="h-8 w-8 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Insights List */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <ScrollArea className="h-[600px]">
+          <div className="space-y-4">
+            <AnimatePresence>
+              {insights.length === 0 && !loading ? (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-center py-12"
+                >
+                  <Brain className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-xl font-semibold mb-2">Nenhum insight ainda</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Clique em "Gerar Insights" para que Crystal analise suas conversas
                   </p>
-                )}
-                {insight.total && (
-                  <div className="mt-2">
-                    <Progress 
-                      value={(insight.value as number) / insight.total * 100} 
-                      className="h-2"
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-
-      <Tabs defaultValue="performance" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3">
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="crushes">Conquistas</TabsTrigger>
-          <TabsTrigger value="activity">Atividade</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="performance" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-coral" />
-                  Distribuição por Estágio
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {Object.entries(stageDistribution).map(([stage, count]) => (
-                  <div key={stage} className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm font-medium">{stage}</span>
-                      <span className="text-sm text-muted-foreground">{count}</span>
-                    </div>
-                    <Progress 
-                      value={totalCrushes > 0 ? (count / totalCrushes) * 100 : 0} 
-                      className="h-2"
-                    />
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Star className="h-5 w-5 text-crimson" />
-                  Nível de Interesse Médio
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {insightsData?.crushes?.slice(0, 5).map((crush) => (
-                    <div key={crush.id} className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="font-medium">{crush.name}</span>
-                        <Badge variant={(crush.interest_level || 0) > 70 ? "default" : (crush.interest_level || 0) > 40 ? "secondary" : "outline"}>
-                          {crush.interest_level || 0}%
-                        </Badge>
-                      </div>
-                      <Progress value={crush.interest_level || 0} className="h-2" />
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                  <Button
+                    onClick={handleGenerateInsights}
+                    disabled={generatingInsights}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Gerar Meus Primeiros Insights
+                  </Button>
+                </motion.div>
+              ) : (
+                insights.map((insight, index) => (
+                  <motion.div
+                    key={insight.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Card className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-primary">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            {getInsightIcon(insight.insight_type)}
+                            <div>
+                              <CardTitle className="text-lg">{insight.title}</CardTitle>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge 
+                                  variant="outline" 
+                                  className={getInsightColor(insight.insight_type)}
+                                >
+                                  {getInsightLabel(insight.insight_type)}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  {format(new Date(insight.created_at), "dd 'de' MMM 'às' HH:mm", { locale: ptBR })}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="text-xs">
+                              Score: {insight.score}
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      
+                      <CardContent>
+                        <p className="text-muted-foreground leading-relaxed">
+                          {insight.content}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))
+              )}
+            </AnimatePresence>
           </div>
-        </TabsContent>
-
-        <TabsContent value="crushes" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-coral" />
-                Suas Conquistas
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {insightsData?.crushes?.map((crush) => (
-                  <div key={crush.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="space-y-1">
-                      <h4 className="font-semibold">{crush.name}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {crush.current_stage} • {crush.age ? `${crush.age} anos` : 'Idade não informada'}
-                      </p>
-                      {crush.last_interaction && (
-                        <p className="text-xs text-muted-foreground">
-                          Última interação: {format(new Date(crush.last_interaction), "dd 'de' MMM, yyyy", { locale: ptBR })}
-                        </p>
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <Badge variant={(crush.interest_level || 0) > 70 ? "default" : (crush.interest_level || 0) > 40 ? "secondary" : "outline"}>
-                        {crush.interest_level || 0}% interesse
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-                {(!insightsData?.crushes || insightsData.crushes.length === 0) && (
-                  <div className="text-center py-8">
-                    <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">Nenhuma conquista cadastrada ainda</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="activity" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-crimson" />
-                Atividade Recente
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {insightsData?.conversations?.slice(0, 10).map((conversation) => (
-                  <div key={conversation.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="space-y-1">
-                      <h4 className="font-semibold">
-                        {conversation.type === 'crystal_chat' ? 'Chat com Crystal' : 'Conversa com Crush'}
-                      </h4>
-                      {conversation.started_at && (
-                        <p className="text-sm text-muted-foreground">
-                          {format(new Date(conversation.started_at), "dd 'de' MMM, yyyy 'às' HH:mm", { locale: ptBR })}
-                        </p>
-                      )}
-                    </div>
-                    <Badge variant="outline">
-                      {Array.isArray(conversation.messages) ? conversation.messages.length : 0} mensagens
-                    </Badge>
-                  </div>
-                ))}
-                {(!insightsData?.conversations || insightsData.conversations.length === 0) && (
-                  <div className="text-center py-8">
-                    <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">Nenhuma conversa iniciada ainda</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </motion.div>
+        </ScrollArea>
+      </motion.div>
+    </div>
   );
 };
 

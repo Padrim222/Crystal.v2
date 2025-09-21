@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      conversation_insights: {
+        Row: {
+          content: string
+          conversation_id: string | null
+          created_at: string
+          crush_id: string | null
+          id: string
+          insight_type: string
+          score: number | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id?: string | null
+          created_at?: string
+          crush_id?: string | null
+          id?: string
+          insight_type: string
+          score?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string | null
+          created_at?: string
+          crush_id?: string | null
+          id?: string
+          insight_type?: string
+          score?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           crush_id: string | null

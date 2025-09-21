@@ -28,10 +28,9 @@ import {
 } from "lucide-react";
 
 const navigation = [
+  { name: "Crystal", url: "/chat", icon: MessageCircle },
   { name: "Dashboard", url: "/dashboard", icon: Home },
   { name: "Paqueras", url: "/crushes", icon: Heart },
-  { name: "Crystal", url: "/chat", icon: MessageCircle },
-  { name: "Conversas", url: "/conversations", icon: MessageCircle },
   { name: "Insights", url: "/insights", icon: TrendingUp },
   { name: "Personalização", url: "/personalization", icon: Sparkles },
 ];

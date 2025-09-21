@@ -104,9 +104,12 @@ export type Database = {
           created_at: string | null
           current_stage: string | null
           id: string
+          imgur_hash: string | null
           interest_level: number | null
           last_interaction: string | null
           name: string
+          photo_url: string | null
+          position: number | null
           updated_at: string | null
           user_id: string
         }
@@ -115,9 +118,12 @@ export type Database = {
           created_at?: string | null
           current_stage?: string | null
           id?: string
+          imgur_hash?: string | null
           interest_level?: number | null
           last_interaction?: string | null
           name: string
+          photo_url?: string | null
+          position?: number | null
           updated_at?: string | null
           user_id: string
         }
@@ -126,9 +132,12 @@ export type Database = {
           created_at?: string | null
           current_stage?: string | null
           id?: string
+          imgur_hash?: string | null
           interest_level?: number | null
           last_interaction?: string | null
           name?: string
+          photo_url?: string | null
+          position?: number | null
           updated_at?: string | null
           user_id?: string
         }

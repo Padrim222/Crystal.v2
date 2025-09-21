@@ -140,13 +140,68 @@ export const useCrushes = () => {
     });
   };
 
-  // Group crushes by stage
+  // Update crush position (for drag and drop)
+  const updateCrushPosition = async (id: string, newStage: string, newPosition: number) => {
+    try {
+      // First, update the dragged crush
+      const { data, error } = await supabase
+        .from('crushes')
+        .update({ 
+          current_stage: newStage, 
+          position: newPosition,
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Then, update positions of other crushes in the same stage
+      const stagecrushes = crushesByStage[newStage] || [];
+      const updates = stagecrushes
+        .filter(crush => crush.id !== id)
+        .map((crush, index) => ({
+          id: crush.id,
+          position: index >= newPosition ? index + 1 : index
+        }));
+
+      if (updates.length > 0) {
+        for (const update of updates) {
+          await supabase
+            .from('crushes')
+            .update({ position: update.position })
+            .eq('id', update.id);
+        }
+      }
+
+      // Refresh data
+      await fetchCrushes();
+
+      return data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao atualizar posição';
+      toast({
+        title: 'Erro',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+      throw err;
+    }
+  };
+
+  // Group crushes by stage and sort by position
   const crushesByStage = crushes.reduce((acc, crush) => {
     const stage = crush.current_stage || 'Primeiro Contato';
     if (!acc[stage]) acc[stage] = [];
     acc[stage].push(crush);
     return acc;
   }, {} as Record<string, Crush[]>);
+
+  // Sort each stage by position
+  Object.keys(crushesByStage).forEach(stage => {
+    crushesByStage[stage].sort((a, b) => (a.position || 0) - (b.position || 0));
+  });
 
   // Get crush statistics
   const stats = {
@@ -175,6 +230,7 @@ export const useCrushes = () => {
     updateCrush,
     deleteCrush,
     moveCrushStage,
+    updateCrushPosition,
     refetch: fetchCrushes,
   };
 };

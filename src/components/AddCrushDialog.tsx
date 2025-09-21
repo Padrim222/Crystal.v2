@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ImageUpload } from "@/components/ImageUpload";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -48,6 +49,8 @@ export function AddCrushDialog({
   onCrushAdded 
 }: AddCrushDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState<string>("");
+  const [imgurHash, setImgurHash] = useState<string>("");
   const { addCrush } = useCrushes();
   const { toast } = useToast();
 
@@ -71,11 +74,16 @@ export function AddCrushDialog({
         current_stage: values.current_stage || "Primeiro Contato",
         interest_level: values.interest_level ? parseInt(values.interest_level) : 5,
         last_interaction: new Date().toISOString(),
+        photo_url: photoUrl || null,
+        imgur_hash: imgurHash || null,
+        position: 0, // New crushes go to the top
       };
 
       const newCrush = await addCrush(crushData);
       onCrushAdded(newCrush);
       form.reset();
+      setPhotoUrl("");
+      setImgurHash("");
       
       toast({
         title: "Sucesso!",
@@ -86,6 +94,16 @@ export function AddCrushDialog({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleImageUpload = (url: string, deleteHash: string) => {
+    setPhotoUrl(url);
+    setImgurHash(deleteHash);
+  };
+
+  const handleImageRemove = () => {
+    setPhotoUrl("");
+    setImgurHash("");
   };
 
   return (
@@ -100,6 +118,16 @@ export function AddCrushDialog({
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Image Upload */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Foto (opcional)</label>
+              <ImageUpload
+                onImageUpload={handleImageUpload}
+                currentImage={photoUrl}
+                onImageRemove={handleImageRemove}
+              />
+            </div>
+
             <FormField
               control={form.control}
               name="name"

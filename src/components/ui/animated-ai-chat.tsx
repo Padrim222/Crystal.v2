@@ -1,583 +1,279 @@
-"use client";
-
-import { useEffect, useRef, useCallback, useTransition } from "react";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
-import {
-    ImageIcon,
-    FileUp,
-    Figma,
-    MonitorIcon,
-    CircleUserRound,
-    ArrowUpIcon,
-    Paperclip,
-    PlusIcon,
-    SendIcon,
-    XIcon,
-    LoaderIcon,
-    Sparkles,
-    Command,
-} from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import * as React from "react"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { 
+  Send, 
+  Bot, 
+  User, 
+  Sparkles,
+  Loader2,
+  Heart,
+  Star
+} from "lucide-react";
 
-interface UseAutoResizeTextareaProps {
-    minHeight: number;
-    maxHeight?: number;
+interface Message {
+  id: string;
+  content: string;
+  sender: 'user' | 'crystal';
+  timestamp: Date;
 }
 
-function useAutoResizeTextarea({
-    minHeight,
-    maxHeight,
-}: UseAutoResizeTextareaProps) {
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-    const adjustHeight = useCallback(
-        (reset?: boolean) => {
-            const textarea = textareaRef.current;
-            if (!textarea) return;
-
-            if (reset) {
-                textarea.style.height = `${minHeight}px`;
-                return;
-            }
-
-            textarea.style.height = `${minHeight}px`;
-            const newHeight = Math.max(
-                minHeight,
-                Math.min(
-                    textarea.scrollHeight,
-                    maxHeight ?? Number.POSITIVE_INFINITY
-                )
-            );
-
-            textarea.style.height = `${newHeight}px`;
-        },
-        [minHeight, maxHeight]
-    );
-
-    useEffect(() => {
-        const textarea = textareaRef.current;
-        if (textarea) {
-            textarea.style.height = `${minHeight}px`;
-        }
-    }, [minHeight]);
-
-    useEffect(() => {
-        const handleResize = () => adjustHeight();
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
-    }, [adjustHeight]);
-
-    return { textareaRef, adjustHeight };
+interface AnimatedAIChatProps {
+  messages: Message[];
+  onSendMessage: (message: string) => void;
+  isGeneratingResponse: boolean;
+  className?: string;
 }
 
-interface CommandSuggestion {
-    icon: React.ReactNode;
-    label: string;
-    description: string;
-    prefix: string;
-}
+export const AnimatedAIChat: React.FC<AnimatedAIChatProps> = ({
+  messages,
+  onSendMessage,
+  isGeneratingResponse,
+  className = ""
+}) => {
+  const [input, setInput] = useState("");
+  const [showSparkles, setShowSparkles] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-interface TextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-  containerClassName?: string;
-  showRing?: boolean;
-}
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
 
-const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, containerClassName, showRing = true, ...props }, ref) => {
-    const [isFocused, setIsFocused] = React.useState(false);
-    
-    return (
-      <div className={cn(
-        "relative",
-        containerClassName
-      )}>
-        <textarea
-          className={cn(
-            "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
-            "transition-all duration-200 ease-in-out",
-            "placeholder:text-muted-foreground",
-            "disabled:cursor-not-allowed disabled:opacity-50",
-            showRing ? "focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0" : "",
-            className
+  // Show sparkles effect when Crystal responds
+  useEffect(() => {
+    if (isGeneratingResponse) {
+      setShowSparkles(true);
+      const timer = setTimeout(() => setShowSparkles(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isGeneratingResponse]);
+
+  const handleSendMessage = () => {
+    if (!input.trim() || isGeneratingResponse) return;
+    onSendMessage(input.trim());
+    setInput("");
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  return (
+    <div className={`flex flex-col h-full ${className}`}>
+      {/* Chat Header */}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center gap-3 p-4 border-b border-border/40 backdrop-blur-sm bg-background/80"
+      >
+        <div className="relative">
+          <Avatar className="h-12 w-12">
+            <AvatarImage src="" alt="Crystal" />
+            <AvatarFallback className="bg-gradient-to-r from-coral to-crimson text-white">
+              <Sparkles className="h-6 w-6" />
+            </AvatarFallback>
+          </Avatar>
+          {showSparkles && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1, rotate: 360 }}
+              exit={{ scale: 0 }}
+              transition={{ duration: 0.5 }}
+              className="absolute -top-2 -right-2"
+            >
+              <Star className="h-4 w-4 text-yellow-400" />
+            </motion.div>
           )}
-          ref={ref}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          {...props}
-        />
+        </div>
         
-        {showRing && isFocused && (
-          <motion.span 
-            className="absolute inset-0 rounded-md pointer-events-none ring-2 ring-offset-0 ring-primary/30"
+        <div className="flex-1">
+          <motion.h3 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          />
-        )}
-
-        {props.onChange && (
-          <div 
-            className="absolute bottom-2 right-2 opacity-0 w-2 h-2 bg-primary rounded-full"
-            style={{
-              animation: 'none',
-            }}
-            id="textarea-ripple"
-          />
-        )}
-      </div>
-    )
-  }
-)
-Textarea.displayName = "Textarea"
-
-export function AnimatedAIChat() {
-    const [value, setValue] = useState("");
-    const [attachments, setAttachments] = useState<string[]>([]);
-    const [isTyping, setIsTyping] = useState(false);
-    const [isPending, startTransition] = useTransition();
-    const [activeSuggestion, setActiveSuggestion] = useState<number>(-1);
-    const [showCommandPalette, setShowCommandPalette] = useState(false);
-    const [recentCommand, setRecentCommand] = useState<string | null>(null);
-    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-    const { textareaRef, adjustHeight } = useAutoResizeTextarea({
-        minHeight: 60,
-        maxHeight: 200,
-    });
-    const [inputFocused, setInputFocused] = useState(false);
-    const commandPaletteRef = useRef<HTMLDivElement>(null);
-
-    const commandSuggestions: CommandSuggestion[] = [
-        { 
-            icon: <Sparkles className="w-4 h-4" />, 
-            label: "Dicas de Conquista", 
-            description: "Receba dicas personalizadas", 
-            prefix: "/dicas" 
-        },
-        { 
-            icon: <ImageIcon className="w-4 h-4" />, 
-            label: "Analisar Foto", 
-            description: "Analise foto da paquera", 
-            prefix: "/foto" 
-        },
-        { 
-            icon: <MonitorIcon className="w-4 h-4" />, 
-            label: "Estratégia", 
-            description: "Planeje sua abordagem", 
-            prefix: "/estrategia" 
-        },
-        { 
-            icon: <CircleUserRound className="w-4 h-4" />, 
-            label: "Perfil", 
-            description: "Análise de personalidade", 
-            prefix: "/perfil" 
-        },
-    ];
-
-    useEffect(() => {
-        if (value.startsWith('/') && !value.includes(' ')) {
-            setShowCommandPalette(true);
-            
-            const matchingSuggestionIndex = commandSuggestions.findIndex(
-                (cmd) => cmd.prefix.startsWith(value)
-            );
-            
-            if (matchingSuggestionIndex >= 0) {
-                setActiveSuggestion(matchingSuggestionIndex);
-            } else {
-                setActiveSuggestion(-1);
-            }
-        } else {
-            setShowCommandPalette(false);
-        }
-    }, [value]);
-
-    useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
-            setMousePosition({ x: e.clientX, y: e.clientY });
-        };
-
-        window.addEventListener('mousemove', handleMouseMove);
-        return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-        };
-    }, []);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            const target = event.target as Node;
-            const commandButton = document.querySelector('[data-command-button]');
-            
-            if (commandPaletteRef.current && 
-                !commandPaletteRef.current.contains(target) && 
-                !commandButton?.contains(target)) {
-                setShowCommandPalette(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
-
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (showCommandPalette) {
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                setActiveSuggestion(prev => 
-                    prev < commandSuggestions.length - 1 ? prev + 1 : 0
-                );
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                setActiveSuggestion(prev => 
-                    prev > 0 ? prev - 1 : commandSuggestions.length - 1
-                );
-            } else if (e.key === 'Tab' || e.key === 'Enter') {
-                e.preventDefault();
-                if (activeSuggestion >= 0) {
-                    const selectedCommand = commandSuggestions[activeSuggestion];
-                    setValue(selectedCommand.prefix + ' ');
-                    setShowCommandPalette(false);
-                    
-                    setRecentCommand(selectedCommand.label);
-                    setTimeout(() => setRecentCommand(null), 3500);
-                }
-            } else if (e.key === 'Escape') {
-                e.preventDefault();
-                setShowCommandPalette(false);
-            }
-        } else if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            if (value.trim()) {
-                handleSendMessage();
-            }
-        }
-    };
-
-    const handleSendMessage = () => {
-        if (value.trim()) {
-            startTransition(() => {
-                setIsTyping(true);
-                setTimeout(() => {
-                    setIsTyping(false);
-                    setValue("");
-                    adjustHeight(true);
-                }, 3000);
-            });
-        }
-    };
-
-    const handleAttachFile = () => {
-        const mockFileName = `anexo-${Math.floor(Math.random() * 1000)}.pdf`;
-        setAttachments(prev => [...prev, mockFileName]);
-    };
-
-    const removeAttachment = (index: number) => {
-        setAttachments(prev => prev.filter((_, i) => i !== index));
-    };
-    
-    const selectCommandSuggestion = (index: number) => {
-        const selectedCommand = commandSuggestions[index];
-        setValue(selectedCommand.prefix + ' ');
-        setShowCommandPalette(false);
+            className="text-lg font-semibold bg-gradient-to-r from-coral to-crimson bg-clip-text text-transparent"
+          >
+            Crystal.ai
+          </motion.h3>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-sm text-muted-foreground"
+          >
+            Sua consultora de relacionamentos
+          </motion.p>
+        </div>
         
-        setRecentCommand(selectedCommand.label);
-        setTimeout(() => setRecentCommand(null), 2000);
-    };
+        <motion.div
+          animate={isGeneratingResponse ? { scale: [1, 1.1, 1] } : { scale: 1 }}
+          transition={{ duration: 1, repeat: isGeneratingResponse ? Infinity : 0 }}
+        >
+          <Heart className="h-5 w-5 text-coral" />
+        </motion.div>
+      </motion.div>
 
-    return (
-        <div className="min-h-screen flex flex-col w-full items-center justify-center bg-transparent text-foreground p-6 relative overflow-hidden">
-        <div className="absolute inset-0 w-full h-full overflow-hidden">
-                <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full mix-blend-normal filter blur-[128px] animate-pulse" />
-                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/10 rounded-full mix-blend-normal filter blur-[128px] animate-pulse delay-700" />
-                <div className="absolute top-1/4 right-1/3 w-64 h-64 bg-accent/10 rounded-full mix-blend-normal filter blur-[96px] animate-pulse delay-1000" />
-            </div>
-            <div className="w-full max-w-2xl mx-auto relative">
-                <motion.div 
-                    className="relative z-10 space-y-12"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                >
-                    <div className="text-center space-y-3">
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2, duration: 0.5 }}
-                            className="inline-block"
-                        >
-                            <h1 className="text-3xl font-medium tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary pb-1">
-                                Como posso te ajudar hoje?
-                            </h1>
-                            <motion.div 
-                                className="h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"
-                                initial={{ width: 0, opacity: 0 }}
-                                animate={{ width: "100%", opacity: 1 }}
-                                transition={{ delay: 0.5, duration: 0.8 }}
-                            />
-                        </motion.div>
-                        <motion.p 
-                            className="text-sm text-muted-foreground"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.3 }}
-                        >
-                            Digite um comando ou faça uma pergunta
-                        </motion.p>
-                    </div>
-
-                    <motion.div 
-                        className="relative backdrop-blur-2xl bg-card/50 rounded-2xl border border-border shadow-2xl"
-                        initial={{ scale: 0.98 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.1 }}
-                    >
-                        <AnimatePresence>
-                            {showCommandPalette && (
-                                <motion.div 
-                                    ref={commandPaletteRef}
-                                    className="absolute left-4 right-4 bottom-full mb-2 backdrop-blur-xl bg-background/95 rounded-lg z-50 shadow-lg border border-border overflow-hidden"
-                                    initial={{ opacity: 0, y: 5 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: 5 }}
-                                    transition={{ duration: 0.15 }}
-                                >
-                                    <div className="py-1">
-                                        {commandSuggestions.map((suggestion, index) => (
-                                            <motion.div
-                                                key={suggestion.prefix}
-                                                className={cn(
-                                                    "flex items-center gap-2 px-3 py-2 text-xs transition-colors cursor-pointer",
-                                                    activeSuggestion === index 
-                                                        ? "bg-accent/10 text-primary" 
-                                                        : "text-muted-foreground hover:bg-accent/5"
-                                                )}
-                                                onClick={() => selectCommandSuggestion(index)}
-                                                initial={{ opacity: 0 }}
-                                                animate={{ opacity: 1 }}
-                                                transition={{ delay: index * 0.03 }}
-                                            >
-                                                <div className="w-5 h-5 flex items-center justify-center text-primary">
-                                                    {suggestion.icon}
-                                                </div>
-                                                <div className="font-medium">{suggestion.label}</div>
-                                                <div className="text-muted-foreground text-xs ml-1">
-                                                    {suggestion.prefix}
-                                                </div>
-                                            </motion.div>
-                                        ))}
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        <div className="p-4">
-                            <Textarea
-                                ref={textareaRef}
-                                value={value}
-                                onChange={(e) => {
-                                    setValue(e.target.value);
-                                    adjustHeight();
-                                }}
-                                onKeyDown={handleKeyDown}
-                                onFocus={() => setInputFocused(true)}
-                                onBlur={() => setInputFocused(false)}
-                                placeholder="Faça uma pergunta para a Crystal..."
-                                containerClassName="w-full"
-                                className={cn(
-                                    "w-full px-4 py-3",
-                                    "resize-none",
-                                    "bg-transparent",
-                                    "border-none",
-                                    "text-foreground text-sm",
-                                    "focus:outline-none",
-                                    "placeholder:text-muted-foreground",
-                                    "min-h-[60px]"
-                                )}
-                                style={{
-                                    overflow: "hidden",
-                                }}
-                                showRing={false}
-                            />
-                        </div>
-
-                        <AnimatePresence>
-                            {attachments.length > 0 && (
-                                <motion.div 
-                                    className="px-4 pb-3 flex gap-2 flex-wrap"
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: "auto" }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                >
-                                    {attachments.map((file, index) => (
-                                        <motion.div
-                                            key={index}
-                                            className="flex items-center gap-2 text-xs bg-muted py-1.5 px-3 rounded-lg text-muted-foreground"
-                                            initial={{ opacity: 0, scale: 0.9 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            exit={{ opacity: 0, scale: 0.9 }}
-                                        >
-                                            <span>{file}</span>
-                                            <button 
-                                                onClick={() => removeAttachment(index)}
-                                                className="text-muted-foreground hover:text-foreground transition-colors"
-                                            >
-                                                <XIcon className="w-3 h-3" />
-                                            </button>
-                                        </motion.div>
-                                    ))}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        <div className="p-4 border-t border-border flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-3">
-                                <motion.button
-                                    type="button"
-                                    onClick={handleAttachFile}
-                                    whileTap={{ scale: 0.94 }}
-                                    className="p-2 text-muted-foreground hover:text-primary rounded-lg transition-colors relative group"
-                                >
-                                    <Paperclip className="w-4 h-4" />
-                                    <motion.span
-                                        className="absolute inset-0 bg-accent/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                                        layoutId="button-highlight"
-                                    />
-                                </motion.button>
-                                <motion.button
-                                    type="button"
-                                    data-command-button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setShowCommandPalette(prev => !prev);
-                                    }}
-                                    whileTap={{ scale: 0.94 }}
-                                    className={cn(
-                                        "p-2 text-muted-foreground hover:text-primary rounded-lg transition-colors relative group",
-                                        showCommandPalette && "bg-accent/10 text-primary"
-                                    )}
-                                >
-                                    <Command className="w-4 h-4" />
-                                    <motion.span
-                                        className="absolute inset-0 bg-accent/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                                        layoutId="button-highlight"
-                                    />
-                                </motion.button>
-                            </div>
-                            
-                            <motion.button
-                                type="button"
-                                onClick={handleSendMessage}
-                                whileHover={{ scale: 1.01 }}
-                                whileTap={{ scale: 0.98 }}
-                                disabled={isTyping || !value.trim()}
-                                className={cn(
-                                    "px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                                    "flex items-center gap-2",
-                                    value.trim()
-                                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                                        : "bg-muted text-muted-foreground"
-                                )}
-                            >
-                                {isTyping ? (
-                                    <LoaderIcon className="w-4 h-4 animate-[spin_2s_linear_infinite]" />
-                                ) : (
-                                    <SendIcon className="w-4 h-4" />
-                                )}
-                                <span>Enviar</span>
-                            </motion.button>
-                        </div>
-                    </motion.div>
-
-                    <div className="flex flex-wrap items-center justify-center gap-2">
-                        {commandSuggestions.map((suggestion, index) => (
-                            <motion.button
-                                key={suggestion.prefix}
-                                onClick={() => selectCommandSuggestion(index)}
-                                className="flex items-center gap-2 px-3 py-2 bg-card/50 hover:bg-card/80 rounded-lg text-sm text-muted-foreground hover:text-primary transition-all relative group border border-border/50"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                            >
-                                {suggestion.icon}
-                                <span>{suggestion.label}</span>
-                                <motion.div
-                                    className="absolute inset-0 border border-primary/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                                    initial={false}
-                                />
-                            </motion.button>
-                        ))}
-                    </div>
-                </motion.div>
-            </div>
-
-            <AnimatePresence>
-                {isTyping && (
-                    <motion.div 
-                        className="fixed bottom-8 left-1/2 transform -translate-x-1/2 backdrop-blur-2xl bg-card/50 rounded-full px-4 py-2 shadow-lg border border-border"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 20 }}
-                    >
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-7 rounded-full bg-primary/10 flex items-center justify-center text-center">
-                                <span className="text-xs font-medium text-primary mb-0.5">Crystal</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <span>Pensando</span>
-                                <TypingDots />
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {inputFocused && (
-                <motion.div 
-                    className="fixed w-[50rem] h-[50rem] rounded-full pointer-events-none z-0 opacity-[0.02] bg-gradient-to-r from-primary via-secondary to-accent blur-[96px]"
-                    animate={{
-                        x: mousePosition.x - 400,
-                        y: mousePosition.y - 400,
-                    }}
-                    transition={{
-                        type: "spring",
-                        damping: 25,
-                        stiffness: 150,
-                        mass: 0.5,
-                    }}
-                />
-            )}
-        </div>
-    );
-}
-
-function TypingDots() {
-    return (
-        <div className="flex items-center ml-1">
-            {[1, 2, 3].map((dot) => (
+      {/* Messages Area */}
+      <div className="flex-1 overflow-hidden">
+        <div 
+          ref={scrollRef}
+          className="h-full overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-primary/20"
+        >
+          <AnimatePresence>
+            {messages.map((message, index) => (
+              <motion.div
+                key={message.id}
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                transition={{ 
+                  duration: 0.4, 
+                  delay: index * 0.1,
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 30
+                }}
+                className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
                 <motion.div
-                    key={dot}
-                    className="w-1.5 h-1.5 bg-primary rounded-full mx-0.5"
-                    initial={{ opacity: 0.3 }}
-                    animate={{ 
-                        opacity: [0.3, 0.9, 0.3],
-                        scale: [0.85, 1.1, 0.85]
-                    }}
-                    transition={{
-                        duration: 1.2,
-                        repeat: Infinity,
-                        delay: dot * 0.15,
-                        ease: "easeInOut",
-                    }}
-                    style={{
-                        boxShadow: "0 0 4px hsl(var(--primary) / 0.3)"
-                    }}
-                />
+                  whileHover={{ scale: 1.02 }}
+                  className={`max-w-[75%] rounded-2xl p-4 relative ${
+                    message.sender === 'user'
+                      ? 'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20'
+                      : 'bg-gradient-to-br from-muted to-muted/60 text-foreground border border-border/40 shadow-lg'
+                  }`}
+                >
+                  {message.sender === 'crystal' && (
+                    <motion.div
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ delay: 0.2, type: "spring" }}
+                      className="absolute -top-2 -left-2 bg-gradient-to-r from-coral to-crimson rounded-full p-1"
+                    >
+                      <Sparkles className="h-3 w-3 text-white" />
+                    </motion.div>
+                  )}
+                  
+                  <motion.p 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="text-sm leading-relaxed"
+                  >
+                    {message.content}
+                  </motion.p>
+                  
+                  <motion.p 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.4 }}
+                    className={`text-xs mt-2 ${
+                      message.sender === 'user' 
+                        ? 'text-primary-foreground/70' 
+                        : 'text-muted-foreground/70'
+                    }`}
+                  >
+                    {message.timestamp.toLocaleTimeString('pt-BR', { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </motion.p>
+                </motion.div>
+              </motion.div>
             ))}
+          </AnimatePresence>
+
+          {/* Typing Indicator */}
+          <AnimatePresence>
+            {isGeneratingResponse && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.8 }}
+                transition={{ duration: 0.3 }}
+                className="flex justify-start"
+              >
+                <Card className="bg-gradient-to-r from-muted/80 to-muted/40 border-coral/20 shadow-lg">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                      >
+                        <Sparkles className="h-4 w-4 text-coral" />
+                      </motion.div>
+                      
+                      <div className="flex space-x-1">
+                        {[0, 1, 2].map((i) => (
+                          <motion.div
+                            key={i}
+                            animate={{ y: [-2, 2, -2] }}
+                            transition={{
+                              duration: 0.8,
+                              repeat: Infinity,
+                              delay: i * 0.2,
+                            }}
+                            className="w-2 h-2 bg-coral rounded-full"
+                          />
+                        ))}
+                      </div>
+                      
+                      <span className="text-xs text-muted-foreground font-medium">
+                        Crystal está pensando...
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-    );
-}
+      </div>
+
+      {/* Input Area */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="p-4 border-t border-border/40 bg-background/80 backdrop-blur-sm"
+      >
+        <div className="flex gap-2">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Digite sua mensagem para Crystal..."
+            className="flex-1 border-primary/20 focus:border-primary/40 bg-background/50"
+            disabled={isGeneratingResponse}
+          />
+          
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Button 
+              onClick={handleSendMessage}
+              disabled={!input.trim() || isGeneratingResponse}
+              size="icon"
+              className="bg-gradient-to-r from-coral to-crimson hover:from-coral/80 hover:to-crimson/80 shadow-lg"
+            >
+              {isGeneratingResponse ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+            </Button>
+          </motion.div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};

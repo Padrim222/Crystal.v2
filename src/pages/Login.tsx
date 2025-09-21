@@ -44,10 +44,10 @@ const Login = () => {
       return;
     }
 
-    if (isSignUp && formData.password.length < 6) {
+    if (isSignUp && formData.password.length < 8) {
       toast({
-        title: "Senha muito curta",
-        description: "A senha deve ter pelo menos 6 caracteres",
+        title: "Senha muito fraca",
+        description: "A senha deve ter pelo menos 8 caracteres",
         variant: "destructive",
       });
       return;
@@ -97,14 +97,7 @@ const Login = () => {
     }
   };
 
-  // Test accounts for demonstration
-  const fillTestAccount = () => {
-    setFormData({
-      email: "teste@crystal.ai",
-      password: "123456",
-      name: "Usuário Teste"
-    });
-  };
+  // Removed hardcoded test credentials for security
 
   return (
     <motion.div 
@@ -194,19 +187,12 @@ const Login = () => {
                 className="absolute text-sm text-gray-300 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
               >
                 <Lock className="inline-block mr-2 -mt-1" size={16} />
-                Senha {isSignUp && '(mín. 6 caracteres)'}
+                Senha {isSignUp && '(mín. 8 caracteres)'}
               </label>
             </div>
 
             {!isSignUp && (
               <div className="flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={fillTestAccount}
-                  className="text-xs text-gray-300 hover:text-white transition underline"
-                >
-                  Usar conta teste
-                </button>
                 <a href="#" className="text-xs text-gray-300 hover:text-white transition">
                   Esqueci minha senha
                 </a>

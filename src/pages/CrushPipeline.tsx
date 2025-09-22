@@ -3,7 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus, Heart, MessageCircle, Calendar, Users, GripVertical } from "lucide-react";
+import { Plus, Heart, MessageCircle, Calendar, Users, GripVertical, PieChart } from "lucide-react";
+import { StarBorder } from "@/components/ui/star-border";
+import { PieChart as RechartsPieChart, Cell, ResponsiveContainer, Pie } from 'recharts';
 import { useCrushes } from "@/hooks/useCrushes";
 import { AddCrushDialog } from "@/components/AddCrushDialog";
 import { CrushDetailDialog } from "@/components/CrushDetailDialog";
@@ -102,14 +104,17 @@ function CrushCard({
   isDragging?: boolean;
 }) {
   return (
-    <Card 
+    <StarBorder
+      as="div"
       className={`
-        mb-2 bg-card border hover:bg-muted/50 transition-all duration-300 cursor-pointer group
-        ${isDragging ? 'shadow-lg ring-2 ring-primary/50 scale-105 bg-muted' : ''}
+        mb-2 cursor-pointer group transition-all duration-300
+        ${isDragging ? 'scale-105 opacity-90' : ''}
       `}
+      color="hsl(var(--primary))"
+      speed="8s"
       onClick={() => onViewDetails(crush)}
     >
-      <CardContent className="p-3">
+      <div className="p-3">
         <div className="flex items-center gap-3">
           <div 
             {...dragHandleProps}
@@ -127,7 +132,7 @@ function CrushCard({
           </Avatar>
           
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-sm font-medium truncate">{crush.name}</CardTitle>
+            <div className="text-sm font-medium truncate">{crush.name}</div>
             <div className="flex items-center gap-2 mt-1">
               {crush.age && (
                 <span className="text-xs text-muted-foreground">{crush.age}a</span>
@@ -138,8 +143,8 @@ function CrushCard({
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </StarBorder>
   );
 }
 
@@ -189,7 +194,7 @@ function DroppableStageColumn({ stage, crushes, onViewDetails }: DroppableStageC
 }
 
 const CrushPipeline = () => {
-  const { crushesByStage, stats, loading, updateCrushPosition } = useCrushes();
+  const { crushesByStage, stats, loading, updateCrushPosition, updateCrush } = useCrushes();
   const { toast } = useToast();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [selectedCrush, setSelectedCrush] = useState<Crush | null>(null);
@@ -249,16 +254,30 @@ const CrushPipeline = () => {
       }
     }
 
-    if (!targetStage || targetStage === activeCrush.current_stage) return;
+    if (!targetStage) return;
 
+    // If dragging within the same stage, just reorder
+    if (targetStage === activeCrush.current_stage) {
+      try {
+        await updateCrushPosition(activeId, targetStage, targetIndex);
+      } catch (error) {
+        console.error('Error reordering crush:', error);
+      }
+      return;
+    }
+
+    // Moving to a different stage
     try {
-      await updateCrushPosition(activeId, targetStage, targetIndex);
+      await updateCrush(activeId, { 
+        current_stage: targetStage,
+        updated_at: new Date().toISOString()
+      });
       toast({
         title: "Paquera movida!",
         description: `${activeCrush.name} foi movida para ${targetStage}`,
       });
     } catch (error) {
-      console.error('Error updating crush position:', error);
+      console.error('Error updating crush stage:', error);
       toast({
         title: "Erro",
         description: "Não foi possível mover a paquera",
@@ -353,32 +372,95 @@ const CrushPipeline = () => {
           ))}
         </div>
 
-        {/* Simple Stats - Mobile optimized */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
-          <Card className="p-2 md:p-3">
-            <div className="text-center">
-              <div className="text-lg font-semibold text-primary">{stats.total}</div>
-              <div className="text-xs text-muted-foreground">Total</div>
+        {/* Insights with Pie Charts */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <PieChart className="h-5 w-5 text-primary" />
+            Insights das Paqueras
+          </h2>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Stage Distribution Chart */}
+            <StarBorder as="div" className="w-full" color="hsl(var(--primary))" speed="10s">
+              <div className="p-4">
+                <h3 className="text-sm font-medium mb-3 text-center">Distribuição por Estágio</h3>
+                <div className="h-32 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsPieChart>
+                      <defs>
+                        <linearGradient id="stageGradient1" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="hsl(var(--primary))" />
+                          <stop offset="100%" stopColor="hsl(var(--primary-muted))" />
+                        </linearGradient>
+                        <linearGradient id="stageGradient2" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="hsl(var(--accent))" />
+                          <stop offset="100%" stopColor="hsl(var(--accent-muted))" />
+                        </linearGradient>
+                        <linearGradient id="stageGradient3" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="hsl(var(--secondary))" />
+                          <stop offset="100%" stopColor="hsl(var(--secondary-muted))" />
+                        </linearGradient>
+                        <linearGradient id="stageGradient4" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="hsl(var(--success))" />
+                          <stop offset="100%" stopColor="hsl(var(--success)/0.7)" />
+                        </linearGradient>
+                      </defs>
+                      <Pie
+                        data={[
+                          { name: 'Primeiro Contato', value: stats.byStage['Primeiro Contato'] },
+                          { name: 'Conversa Inicial', value: stats.byStage['Conversa Inicial'] },
+                          { name: 'Encontro', value: stats.byStage['Encontro'] },
+                          { name: 'Relacionamento', value: stats.byStage['Relacionamento'] },
+                        ].filter(item => item.value > 0)}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={20}
+                        outerRadius={50}
+                        paddingAngle={2}
+                        dataKey="value"
+                      >
+                        <Cell fill="url(#stageGradient1)" />
+                        <Cell fill="url(#stageGradient2)" />
+                        <Cell fill="url(#stageGradient3)" />
+                        <Cell fill="url(#stageGradient4)" />
+                      </Pie>
+                    </RechartsPieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </StarBorder>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-2 gap-2">
+              <StarBorder as="div" color="hsl(var(--primary))" speed="12s">
+                <div className="p-3 text-center">
+                  <div className="text-xl font-bold text-primary">{stats.total}</div>
+                  <div className="text-xs text-muted-foreground">Total</div>
+                </div>
+              </StarBorder>
+              
+              <StarBorder as="div" color="hsl(var(--accent))" speed="14s">
+                <div className="p-3 text-center">
+                  <div className="text-xl font-bold">{stats.byStage['Conversa Inicial'] || 0}</div>
+                  <div className="text-xs text-muted-foreground">Conversas</div>
+                </div>
+              </StarBorder>
+              
+              <StarBorder as="div" color="hsl(var(--secondary))" speed="16s">
+                <div className="p-3 text-center">
+                  <div className="text-xl font-bold">{stats.byStage['Encontro'] || 0}</div>
+                  <div className="text-xs text-muted-foreground">Encontros</div>
+                </div>
+              </StarBorder>
+              
+              <StarBorder as="div" color="hsl(var(--success))" speed="18s">
+                <div className="p-3 text-center">
+                  <div className="text-xl font-bold text-success">{stats.successRate}%</div>
+                  <div className="text-xs text-muted-foreground">Sucesso</div>
+                </div>
+              </StarBorder>
             </div>
-          </Card>
-          <Card className="p-2 md:p-3">
-            <div className="text-center">
-              <div className="text-lg font-semibold">{stats.byStage['Conversa Inicial'] || 0}</div>
-              <div className="text-xs text-muted-foreground">Conversas</div>
-            </div>
-          </Card>
-          <Card className="p-2 md:p-3">
-            <div className="text-center">
-              <div className="text-lg font-semibold">{stats.byStage['Encontro'] || 0}</div>
-              <div className="text-xs text-muted-foreground">Encontros</div>
-            </div>
-          </Card>
-          <Card className="p-2 md:p-3">
-            <div className="text-center">
-              <div className="text-lg font-semibold">{stats.successRate}%</div>
-              <div className="text-xs text-muted-foreground">Sucesso</div>
-            </div>
-          </Card>
+          </div>
         </div>
 
         {/* Dialogs */}

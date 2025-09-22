@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { V0AiChat } from "@/components/ui/v0-ai-chat";
+import { ChatBubble, ChatBubbleAvatar, ChatBubbleMessage } from "@/components/ui/chat-bubble";
+import { ChatMessageList } from "@/components/ui/chat-message-list";
+import { ChatInput } from "@/components/ui/chat-input";
 import { CrystalWelcome } from "@/components/CrystalWelcome";
 import { useConversations } from "@/hooks/useConversations";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,19 +12,20 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Send, 
-  Bot, 
   User, 
   Sparkles,
-  MessageCircle,
   Loader2,
-  Target,
   ArrowLeft,
-  Heart
+  Heart,
+  CornerDownLeft,
+  Paperclip,
+  Mic
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Tables } from "@/integrations/supabase/types";
+import crystalAvatar from "@/assets/crystal-avatar.jpg";
 
 type Message = Tables<'messages'>;
 type Conversation = Tables<'conversations'>;
@@ -107,8 +107,14 @@ export function RealTimeChat({
     }
   }, [activeConversation?.messages]);
 
-  const handleSendMessage = async (messageContent: string) => {
-    if (!messageContent.trim() || !activeConversation) return;
+  const [input, setInput] = useState("");
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || !activeConversation || isGeneratingResponse) return;
+
+    const messageContent = input.trim();
+    setInput("");
 
     try {
       // Send user message
@@ -258,8 +264,16 @@ export function RealTimeChat({
       .replace(/\n/g, '<br/>');
   };
 
+  const handleAttachFile = () => {
+    // TODO: Implement file attachment
+  };
+
+  const handleMicrophoneClick = () => {
+    // TODO: Implement voice recording
+  };
+
   return (
-    <div className="h-full flex flex-col max-w-4xl mx-auto">
+    <div className="h-full flex flex-col">
       {/* Chat Header */}
       <div className="flex items-center gap-3 p-4 border-b border-border/40 bg-background/80 shrink-0">
         <Button 
@@ -272,7 +286,7 @@ export function RealTimeChat({
         </Button>
         
         <Avatar className="h-8 w-8">
-          <AvatarImage src="" alt="Crystal" />
+          <AvatarImage src={crystalAvatar} alt="Crystal" />
           <AvatarFallback className="bg-gradient-to-r from-coral to-crimson text-white">
             <Sparkles className="h-4 w-4" />
           </AvatarFallback>
@@ -295,31 +309,23 @@ export function RealTimeChat({
       </div>
       
       {/* Messages Area */}
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-        <div className="space-y-4 pb-4">
+      <div className="flex-1 overflow-hidden">
+        <ChatMessageList smooth>
           {transformedMessages.map((message, index) => (
             <motion.div
               key={message.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className={`flex gap-3 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+              transition={{ delay: index * 0.05 }}
             >
-              {message.sender === 'crystal' && (
-                <Avatar className="h-8 w-8 shrink-0">
-                  <AvatarFallback className="bg-gradient-to-r from-coral to-crimson text-white">
-                    <Sparkles className="h-4 w-4" />
-                  </AvatarFallback>
-                </Avatar>
-              )}
-              
-              <div className={`max-w-[80%] ${message.sender === 'user' ? 'order-first' : ''}`}>
-                <div 
-                  className={`p-3 rounded-2xl ${
-                    message.sender === 'user' 
-                      ? 'bg-primary text-primary-foreground ml-auto' 
-                      : 'bg-muted text-foreground'
-                  }`}
+              <ChatBubble variant={message.sender === 'user' ? 'sent' : 'received'}>
+                <ChatBubbleAvatar
+                  className="h-8 w-8 shrink-0"
+                  src={message.sender === 'crystal' ? crystalAvatar : undefined}
+                  fallback={message.sender === 'user' ? 'US' : 'C'}
+                />
+                <ChatBubbleMessage
+                  variant={message.sender === 'user' ? 'sent' : 'received'}
                 >
                   <div 
                     className="text-sm leading-relaxed"
@@ -327,21 +333,11 @@ export function RealTimeChat({
                       __html: renderMessage(message.content) 
                     }}
                   />
-                </div>
-                <div className={`text-xs text-muted-foreground mt-1 ${
-                  message.sender === 'user' ? 'text-right' : 'text-left'
-                }`}>
-                  {format(message.timestamp, 'HH:mm', { locale: ptBR })}
-                </div>
-              </div>
-              
-              {message.sender === 'user' && (
-                <Avatar className="h-8 w-8 shrink-0">
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    <User className="h-4 w-4" />
-                  </AvatarFallback>
-                </Avatar>
-              )}
+                  <div className="text-xs opacity-70 mt-2">
+                    {format(message.timestamp, 'HH:mm', { locale: ptBR })}
+                  </div>
+                </ChatBubbleMessage>
+              </ChatBubble>
             </motion.div>
           ))}
           
@@ -349,33 +345,66 @@ export function RealTimeChat({
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex gap-3 justify-start"
             >
-              <Avatar className="h-8 w-8 shrink-0">
-                <AvatarFallback className="bg-gradient-to-r from-coral to-crimson text-white">
-                  <Sparkles className="h-4 w-4" />
-                </AvatarFallback>
-              </Avatar>
-              <div className="bg-muted text-foreground p-3 rounded-2xl">
-                <div className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="text-sm">Crystal está digitando...</span>
-                </div>
-              </div>
+              <ChatBubble variant="received">
+                <ChatBubbleAvatar
+                  className="h-8 w-8 shrink-0"
+                  src={crystalAvatar}
+                  fallback="C"
+                />
+                <ChatBubbleMessage isLoading />
+              </ChatBubble>
             </motion.div>
           )}
-        </div>
-      </ScrollArea>
+        </ChatMessageList>
+      </div>
 
       {/* Input Area */}
-      <div className="shrink-0 p-4 border-t border-border/40">
-        <V0AiChat
-          onSendMessage={handleSendMessage}
-          isGeneratingResponse={isGeneratingResponse}
-          placeholder={selectedCrushName ? `Conversar sobre ${selectedCrushName}...` : "Conversar com Crystal..."}
-          title=""
-          showTitle={false}
-        />
+      <div className="p-4 border-t">
+        <form
+          onSubmit={handleSendMessage}
+          className="relative rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring p-1"
+        >
+          <ChatInput
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={selectedCrushName ? `Conversar sobre ${selectedCrushName}...` : "Conversar com Crystal..."}
+            className="min-h-12 resize-none rounded-lg bg-background border-0 p-3 shadow-none focus-visible:ring-0"
+            disabled={isGeneratingResponse}
+          />
+          <div className="flex items-center p-3 pt-0 justify-between">
+            <div className="flex">
+              <Button
+                variant="ghost"
+                size="icon"
+                type="button"
+                onClick={handleAttachFile}
+                disabled={isGeneratingResponse}
+              >
+                <Paperclip className="size-4" />
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                type="button"
+                onClick={handleMicrophoneClick}
+                disabled={isGeneratingResponse}
+              >
+                <Mic className="size-4" />
+              </Button>
+            </div>
+            <Button 
+              type="submit" 
+              size="sm" 
+              className="ml-auto gap-1.5"
+              disabled={!input.trim() || isGeneratingResponse}
+            >
+              {isGeneratingResponse ? "Enviando..." : "Enviar"}
+              <CornerDownLeft className="size-3.5" />
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   );

@@ -119,11 +119,42 @@ const AppLayout = () => {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 pt-20 sm:pt-4 pb-20 sm:pb-4 overflow-auto">
+        <main className="flex-1 p-4 pt-20 sm:pt-4 pb-32 sm:pb-20 overflow-auto">
           <div className="max-w-6xl mx-auto">
             <Outlet />
           </div>
         </main>
+
+        {/* Footer */}
+        <footer className="bg-card/80 backdrop-blur-sm border-t border-border mt-auto">
+          <div className="max-w-6xl mx-auto px-6 py-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <Heart className="h-4 w-4 text-primary" />
+                <span className="text-sm text-muted-foreground">
+                  Crystal.ai versão 1.0.2 - Nos ajude a melhorar a Crystal nas atualizações semanais
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <a
+                  href="mailto:contato@leticiafelisberto.com"
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                >
+                  contato@leticiafelisberto.com
+                </a>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => window.open('mailto:contato@leticiafelisberto.com?subject=%23Feedback', '_blank')}
+                  className="text-xs h-8"
+                >
+                  <MessageCircle className="h-3 w-3 mr-1" />
+                  Feedback
+                </Button>
+              </div>
+            </div>
+          </div>
+        </footer>
 
         {/* WhatsApp Button */}
         <a

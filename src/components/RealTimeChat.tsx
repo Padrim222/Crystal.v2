@@ -6,6 +6,7 @@ import { ChatBubble, ChatBubbleAvatar, ChatBubbleMessage } from "@/components/ui
 import { ChatMessageList } from "@/components/ui/chat-message-list";
 import { ChatInput } from "@/components/ui/chat-input";
 import { CrystalWelcome } from "@/components/CrystalWelcome";
+import { ChatAttachments } from "@/components/ChatAttachments";
 import { useConversations } from "@/hooks/useConversations";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -45,6 +46,8 @@ export function RealTimeChat({
   const [showWelcome, setShowWelcome] = useState(true);
   const [selectedCrushId, setSelectedCrushId] = useState<string | undefined>(crushId);
   const [selectedCrushName, setSelectedCrushName] = useState<string | undefined>();
+  const [attachedImage, setAttachedImage] = useState<string | undefined>();
+  const [attachedImageBase64, setAttachedImageBase64] = useState<string | undefined>();
   const { user } = useAuth();
   const { toast } = useToast();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -124,8 +127,8 @@ export function RealTimeChat({
       setIsGeneratingResponse(true);
       
       try {
-        // Prepare conversation history for context
-        const conversationHistory = (activeConversation.messages || []).slice(-10).map(msg => ({
+        // Prepare conversation history for context - use more messages for better memory
+        const conversationHistory = (activeConversation.messages || []).slice(-20).map(msg => ({
           role: msg.sender === 'user' ? 'user' : 'assistant',
           content: msg.content
         }));
@@ -179,7 +182,9 @@ export function RealTimeChat({
           conversationHistory: conversationHistory,
           contextInfo: contextInfo + personalityModifier,
           crushName: selectedCrushName,
-          userId: user.id
+          userId: user.id,
+          imageUrl: attachedImage,
+          imageBase64: attachedImageBase64
         }
       });
 
@@ -190,6 +195,12 @@ export function RealTimeChat({
 
         if (data?.response) {
           await sendMessage(activeConversation.id, data.response, 'crystal');
+          
+          // Clear attached image after sending
+          if (attachedImage) {
+            setAttachedImage(undefined);
+            setAttachedImageBase64(undefined);
+          }
         } else {
           throw new Error('Resposta inválida da Crystal');
         }
@@ -264,8 +275,14 @@ export function RealTimeChat({
       .replace(/\n/g, '<br/>');
   };
 
-  const handleAttachFile = () => {
-    // TODO: Implement file attachment
+  const handleImageSelect = (imageUrl: string, imageBase64: string) => {
+    setAttachedImage(imageUrl);
+    setAttachedImageBase64(imageBase64);
+  };
+
+  const handleImageRemove = () => {
+    setAttachedImage(undefined);
+    setAttachedImageBase64(undefined);
   };
 
   const handleMicrophoneClick = () => {
@@ -368,21 +385,22 @@ export function RealTimeChat({
           <ChatInput
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={selectedCrushName ? `Conversar sobre ${selectedCrushName}...` : "Conversar com Crystal..."}
+            placeholder={
+              attachedImage 
+                ? "Descreva o que você quer saber sobre essa imagem..."
+                : selectedCrushName ? `Conversar sobre ${selectedCrushName}...` : "Conversar com Crystal..."
+            }
             className="min-h-12 resize-none rounded-lg bg-background border-0 p-3 shadow-none focus-visible:ring-0"
             disabled={isGeneratingResponse}
           />
           <div className="flex items-center p-3 pt-0 justify-between">
-            <div className="flex">
-              <Button
-                variant="ghost"
-                size="icon"
-                type="button"
-                onClick={handleAttachFile}
+          <div className="flex">
+              <ChatAttachments
+                onImageSelect={handleImageSelect}
+                currentImage={attachedImage}
+                onImageRemove={handleImageRemove}
                 disabled={isGeneratingResponse}
-              >
-                <Paperclip className="size-4" />
-              </Button>
+              />
 
               <Button
                 variant="ghost"

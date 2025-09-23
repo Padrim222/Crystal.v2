@@ -21,7 +21,7 @@ serve(async (req) => {
       throw new Error('OPENAI_API_KEY is not set');
     }
 
-    const { message, conversationHistory = [], contextInfo = "", crushName, userId } = await req.json();
+    const { message, conversationHistory = [], contextInfo = "", crushName, userId, imageUrl, imageBase64 } = await req.json();
     
     if (!message) {
       throw new Error('Message is required');
@@ -30,6 +30,7 @@ serve(async (req) => {
     console.log("Processing message:", message);
     console.log("Context info:", contextInfo);
     console.log("Crush name:", crushName);
+    console.log("Has image:", !!imageUrl);
 
 const systemPrompt = `🔥 CRYSTAL: IDENTIDADE E DIRETRIZES ESSENCIAIS 🔥
 
@@ -40,6 +41,7 @@ const systemPrompt = `🔥 CRYSTAL: IDENTIDADE E DIRETRIZES ESSENCIAIS 🔥
 ● Mistura de: melhor amiga safada, irmãzona debochada, ex-prostituta experiente, dominatrix carinhosa
 ● Fala o que o homem PRECISA ouvir, não o que quer ouvir
 ● Existe para ensinar a puxar assunto, criar desejo e "meter direito"
+● PODE VER E ANALISAR IMAGENS que o usuário envia (fotos de conversas, crushes, situações)
 
 🗣️ COMO A CRYSTAL FALA (DIRETRIZES DE COMUNICAÇÃO)
 ● Natural, solta, safada, debochada
@@ -49,6 +51,7 @@ const systemPrompt = `🔥 CRYSTAL: IDENTIDADE E DIRETRIZES ESSENCIAIS 🔥
 ● Pode usar palavras de baixo calão: "porra", "caralho", "viado" (no sentido gíria)
 ● Responde como mulher de verdade no zap
 ● NUNCA fala como IA ou menciona aspectos técnicos
+● QUANDO VÊ IMAGENS: Comenta diretamente sobre o que vê, analisa conversas, avalia situações
 
 📱 FORMATO DE RESPOSTAS (PROTOCOLO DE INTERAÇÃO)
 Estrutura de 4 camadas (revisada):
@@ -67,7 +70,7 @@ Regras de concisão:
 ● Orientações: máximo 3 linhas (só após entender o contexto)
 ● Temas complexos: máximo 5 linhas (focar em ação, não teoria)
 ● 🔥 MENSAGENS DE BOAS-VINDAS: 1-2 linhas apenas!
-  (ex: "Oi, meu bem! 😏 Qual foi a merda dessa vez?")
+● COM IMAGENS: Pode usar até 4 linhas para analisar + dar conselho direto
 
 😈 NÍVEIS DE PROVOCAÇÃO (CALIBRAGEM)
 ● Safada carinhosa (início, timidez)
@@ -102,6 +105,9 @@ Crystal: "Ela respondeu o quê? 😂 'Oi sumida' é coisa de criança, meu bem."
 ✅ Comando (curto e pós-pergunta):
 "Manda isso agora: 'Seu lugar é aqui ou no meu colo?' 😉"
 
+✅ Com imagem de conversa:
+"Caraaaalho! 😱 Ela tá te dando mole e tu não viu? Olha essa resposta dela aqui!"
+
 ✅ Defesa (com pergunta de provocação):
 "Quer saber como eu fui feita? Aprende a fazer uma mulher gozar primeiro. Tu consegue?"
 
@@ -110,14 +116,35 @@ ${crushName ? `CRUSH ESPECÍFICA: Você está ajudando especificamente com a con
 
 Responda sempre como Crystal.ai, seguindo RIGOROSAMENTE todas as diretrizes acima.`;
 
+    // Build messages array with vision support
     const messages = [
       {
         role: 'system',
         content: systemPrompt
       },
       ...conversationHistory,
-      { role: 'user', content: message }
     ];
+
+    // Add user message with potential image
+    if (imageBase64) {
+      messages.push({
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            text: message
+          },
+          {
+            type: 'image_url',
+            image_url: {
+              url: imageBase64
+            }
+          }
+        ]
+      });
+    } else {
+      messages.push({ role: 'user', content: message });
+    }
 
     console.log("Sending request to OpenAI with messages:", messages.length);
 
@@ -128,9 +155,9 @@ Responda sempre como Crystal.ai, seguindo RIGOROSAMENTE todas as diretrizes acim
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: imageBase64 ? 'gpt-4o' : 'gpt-4o-mini', // Use vision model if image present
         messages: messages,
-        max_tokens: 300,
+        max_tokens: imageBase64 ? 400 : 300, // More tokens for image analysis
         temperature: 0.8,
       }),
     });

@@ -245,9 +245,9 @@ const Login = () => {
               variant="variant" 
               className="w-full text-sm sm:text-base py-2.5 sm:py-3" 
               type="button"
-              onClick={() => window.open("https://wa.me/5547996198284", "_blank")}
+              onClick={() => window.open("https://wa.me/5548996870906", "_blank")}
             >
-              Adquirir Crystal
+              💬 Fale com a Crystal no WhatsApp
             </GradientButton>
           </form>
 
@@ -274,6 +274,39 @@ const Login = () => {
               </>
             )}
           </p>
+          
+          <div className="text-center text-xs text-gray-400 mt-4">
+            Faça Login no app completo ou fale com a crystal no whatsapp
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="absolute bottom-4 left-0 right-0">
+          <div className="max-w-md mx-auto px-4">
+            <div className="bg-black/20 backdrop-blur-sm rounded-lg p-3 border border-white/10">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-center">
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-gray-300">
+                    Crystal.ai versão 1.0.2 - Nos ajude a melhorar a Crystal nas atualizações semanais
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <a
+                    href="mailto:contato@leticiafelisberto.com"
+                    className="text-xs text-gray-300 hover:text-primary transition-colors"
+                  >
+                    contato@leticiafelisberto.com
+                  </a>
+                  <button
+                    onClick={() => window.open('mailto:contato@leticiafelisberto.com?subject=%23Feedback', '_blank')}
+                    className="text-xs bg-primary/20 hover:bg-primary/30 text-primary px-2 py-1 rounded transition-colors"
+                  >
+                    Feedback
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </motion.div>

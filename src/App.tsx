@@ -11,7 +11,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import CrushPipeline from "./pages/CrushPipeline";
 import Chat from "./pages/Chat";
-import Conversations from "./pages/Conversations";
+
 import Insights from "./pages/Insights";
 import Personalization from "./pages/Personalization";
 import AppLayout from "./components/AppLayout";
@@ -37,7 +37,6 @@ const App = () => (
             <Route path="insights" element={<Insights />} />
             <Route path="personalization" element={<Personalization />} />
             <Route path="dashboard" element={<Dashboard />} />
-            <Route path="conversations" element={<Conversations />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -23,10 +23,10 @@ const Login = () => {
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/chat");
+    if (!loading && isAuthenticated) {
+      navigate("/chat", { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, loading, navigate]);
 
   const handleDevMode = () => {
     navigate('/dashboard');
@@ -58,7 +58,7 @@ const Login = () => {
       if (!result.error) {
         // Se tem sessão, redireciona. Se não, fica no login aguardando confirmação
         if (result.data?.session) {
-          navigate("/chat");
+          navigate("/chat", { replace: true });
         } else {
           setIsSignUp(false);
           setFormData({ email: "", password: "", name: "" });
@@ -67,7 +67,7 @@ const Login = () => {
     } else {
       const result = await signIn(formData.email, formData.password);
       if (!result.error) {
-        navigate("/chat");
+        navigate("/chat", { replace: true });
       }
     }
   };

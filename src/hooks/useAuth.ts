@@ -59,7 +59,7 @@ export const useAuth = () => {
   const signUp = async (email: string, password: string, name?: string) => {
     setLoading(true);
     try {
-      const redirectUrl = `${window.location.origin}/dashboard`;
+      const redirectUrl = `${window.location.origin}/chat`;
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -85,6 +85,12 @@ export const useAuth = () => {
         toast({
           title: "Confirme seu email",
           description: "Enviamos um link de confirmação para seu email.",
+        });
+      } else if (data.session) {
+        // Se o usuário já está logado após o cadastro (sem confirmação de email)
+        toast({
+          title: "Cadastro realizado!",
+          description: "Bem-vindo ao Crystal.ai",
         });
       }
 

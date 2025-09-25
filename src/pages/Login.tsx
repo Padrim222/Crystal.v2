@@ -56,8 +56,13 @@ const Login = () => {
     if (isSignUp) {
       const result = await signUp(formData.email, formData.password, formData.name);
       if (!result.error) {
-        setIsSignUp(false);
-        setFormData({ email: "", password: "", name: "" });
+        // Se tem sessão, redireciona. Se não, fica no login aguardando confirmação
+        if (result.data?.session) {
+          navigate("/chat");
+        } else {
+          setIsSignUp(false);
+          setFormData({ email: "", password: "", name: "" });
+        }
       }
     } else {
       const result = await signIn(formData.email, formData.password);

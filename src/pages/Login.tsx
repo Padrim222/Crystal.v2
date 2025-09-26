@@ -286,7 +286,7 @@ const Login = () => {
         </div>
 
         {/* Footer */}
-        <div className="absolute bottom-4 left-0 right-0">
+        <div className="mt-8 mb-4">
           <div className="max-w-md mx-auto px-4">
             <div className="bg-black/20 backdrop-blur-sm rounded-lg p-3 border border-white/10">
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-center">

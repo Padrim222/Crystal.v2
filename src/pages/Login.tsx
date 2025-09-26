@@ -135,7 +135,7 @@ const Login = () => {
             </p>
           </div>
 
-          <MaintenanceAlert />
+          
 
           <form className="space-y-6 sm:space-y-8" onSubmit={handleSubmit}>
             {isSignUp && (

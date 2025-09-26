@@ -250,7 +250,7 @@ const Login = () => {
               variant="variant" 
               className="w-full text-sm sm:text-base py-2.5 sm:py-3" 
               type="button"
-              onClick={() => window.open("https://wa.me/5548996870906", "_blank")}
+              onClick={() => window.open("https://wa.me/554896870906", "_blank")}
             >
               💬 Fale com a Crystal no WhatsApp
             </GradientButton>

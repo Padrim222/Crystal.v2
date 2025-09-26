@@ -128,7 +128,7 @@ export const CrystalWelcome: React.FC<CrystalWelcomeProps> = ({
       {/* WhatsApp Button */}
       <div className="px-6 pb-4">
         <Button
-          onClick={() => window.open('https://wa.me/5548996870906', '_blank')}
+          onClick={() => window.open('https://wa.me/554896870906', '_blank')}
           className="w-full bg-green-600 hover:bg-green-700 text-white"
         >
           <MessageCircle className="h-4 w-4 mr-2" />

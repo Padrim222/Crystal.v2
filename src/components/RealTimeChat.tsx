@@ -20,7 +20,8 @@ import {
   Heart,
   CornerDownLeft,
   Paperclip,
-  Mic
+  Mic,
+  X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
@@ -163,14 +164,23 @@ export function RealTimeChat({
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || !activeConversation || isGeneratingResponse) return;
+    if ((!input.trim() && !attachedImage) || !activeConversation || isGeneratingResponse) return;
 
     const messageContent = input.trim();
+    const hasImage = !!attachedImage;
+    const imageUrl = attachedImage;
     setInput("");
 
     try {
-      // Send user message
-      await sendMessage(activeConversation.id, messageContent, 'user');
+      // Send user message with optional image
+      let finalMessageContent = messageContent;
+      if (hasImage && imageUrl) {
+        finalMessageContent = messageContent 
+          ? `${messageContent}\n\n[Imagem enviada: ${imageUrl}]`
+          : `[Imagem enviada: ${imageUrl}]`;
+      }
+      
+      await sendMessage(activeConversation.id, finalMessageContent, 'user');
 
       // Update last conversation ID in localStorage for quick access
       localStorage.setItem('lastConversationId', activeConversation.id);
@@ -318,13 +328,26 @@ export function RealTimeChat({
     return 'Conversa com Crystal';
   };
 
-  // Custom markdown renderer for Crystal responses
-  const renderMessage = (content: string) => {
-    return content
+  // Custom message renderer with image support
+  const renderMessage = (content: string, sender: 'user' | 'crystal') => {
+    // Extract image URLs from message content
+    const imagePattern = /\[Imagem enviada: (.*?)\]/g;
+    const images: string[] = [];
+    let textContent = content;
+    
+    let match;
+    while ((match = imagePattern.exec(content)) !== null) {
+      images.push(match[1]);
+      textContent = textContent.replace(match[0], '').trim();
+    }
+
+    const formattedText = textContent
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
       .replace(/`(.*?)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm">$1</code>')
       .replace(/\n/g, '<br/>');
+
+    return { text: formattedText, images };
   };
 
   const handleImageSelect = (imageUrl: string, imageBase64: string) => {
@@ -396,15 +419,44 @@ export function RealTimeChat({
                 <ChatBubbleMessage
                   variant={message.sender === 'user' ? 'sent' : 'received'}
                 >
-                  <div 
-                    className="text-sm leading-relaxed"
-                    dangerouslySetInnerHTML={{ 
-                      __html: renderMessage(message.content) 
-                    }}
-                  />
-                  <div className="text-xs opacity-70 mt-2">
-                    {format(message.timestamp, 'HH:mm', { locale: ptBR })}
-                  </div>
+                  {(() => {
+                    const { text, images } = renderMessage(message.content, message.sender);
+                    return (
+                      <div className="space-y-2">
+                        {/* Render images first */}
+                        {images.length > 0 && (
+                          <div className="space-y-2">
+                            {images.map((imageUrl, idx) => (
+                              <div key={idx} className="relative max-w-xs">
+                                <img
+                                  src={imageUrl}
+                                  alt={`Imagem ${idx + 1}`}
+                                  className="w-full rounded-lg object-cover max-h-64 cursor-pointer hover:opacity-90 transition-opacity"
+                                  onClick={() => window.open(imageUrl, '_blank')}
+                                  onError={(e) => {
+                                    console.error('Error loading image:', imageUrl);
+                                    e.currentTarget.style.display = 'none';
+                                  }}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Render text content */}
+                        {text && (
+                          <div 
+                            className="text-sm leading-relaxed"
+                            dangerouslySetInnerHTML={{ __html: text }}
+                          />
+                        )}
+                        
+                        <div className="text-xs opacity-70 mt-2">
+                          {format(message.timestamp, 'HH:mm', { locale: ptBR })}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </ChatBubbleMessage>
               </ChatBubble>
             </motion.div>
@@ -430,6 +482,38 @@ export function RealTimeChat({
 
       {/* Input Area */}
       <div className="p-4 border-t">
+        {/* Image Preview */}
+        {attachedImage && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mb-3 p-2 border border-border rounded-lg bg-muted/20"
+          >
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <img
+                  src={attachedImage}
+                  alt="Preview"
+                  className="w-16 h-16 object-cover rounded-md"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground">Imagem anexada</p>
+                <p className="text-xs text-muted-foreground">Pronta para enviar</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleImageRemove}
+                disabled={isGeneratingResponse}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </motion.div>
+        )}
+
         <form
           onSubmit={handleSendMessage}
           className="relative rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring p-1"
@@ -446,7 +530,7 @@ export function RealTimeChat({
             disabled={isGeneratingResponse}
           />
           <div className="flex items-center p-3 pt-0 justify-between">
-          <div className="flex">
+            <div className="flex">
               <ChatAttachments
                 onImageSelect={handleImageSelect}
                 currentImage={attachedImage}
@@ -468,7 +552,7 @@ export function RealTimeChat({
               type="submit" 
               size="sm" 
               className="ml-auto gap-1.5"
-              disabled={!input.trim() || isGeneratingResponse}
+              disabled={(!input.trim() && !attachedImage) || isGeneratingResponse}
             >
               {isGeneratingResponse ? "Enviando..." : "Enviar"}
               <CornerDownLeft className="size-3.5" />

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, X, Loader2, Image as ImageIcon, Paperclip } from "lucide-react";
+import { Upload, X, Loader2, Image as ImageIcon, Paperclip, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ChatAttachmentsProps {
@@ -111,23 +111,23 @@ export const ChatAttachments = ({
         variant="ghost"
         size="icon"
         type="button"
-        onClick={() => setShowUpload(!showUpload)}
+        onClick={() => currentImage ? fileInputRef.current?.click() : setShowUpload(!showUpload)}
         disabled={disabled}
         className={currentImage ? "text-primary" : ""}
       >
-        <Paperclip className="size-4" />
+        {currentImage ? <Plus className="size-4" /> : <Paperclip className="size-4" />}
       </Button>
 
       {/* Upload Modal/Popup */}
       <AnimatePresence>
-        {showUpload && (
+        {showUpload && !currentImage && (
           <motion.div
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute bottom-full mb-2 right-0 z-50"
+            className="absolute bottom-full mb-2 right-0 z-50 max-w-[calc(100vw-2rem)] w-80"
           >
-            <Card className="p-4 w-80 shadow-lg border-2">
+            <Card className="p-4 shadow-lg border-2">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-medium">Enviar imagem para Crystal</h4>
@@ -140,65 +140,32 @@ export const ChatAttachments = ({
                   </Button>
                 </div>
 
-                {currentImage ? (
-                  <div className="space-y-3">
-                    <div className="relative">
-                      <img
-                        src={currentImage}
-                        alt="Anexo"
-                        className="w-full h-24 object-cover rounded-md"
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={uploading}
-                        className="flex-1"
-                      >
-                        <Upload className="h-4 w-4 mr-2" />
-                        Trocar
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={handleRemoveImage}
-                        disabled={uploading}
-                      >
-                        <X className="h-4 w-4 mr-2" />
-                        Remover
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div
-                      className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
-                      onClick={() => !uploading && fileInputRef.current?.click()}
-                    >
-                      {uploading ? (
-                        <div className="space-y-2">
-                          <Loader2 className="h-8 w-8 text-primary animate-spin mx-auto" />
-                          <p className="text-xs text-muted-foreground">Enviando...</p>
+                <div className="space-y-3">
+                  <div
+                    className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                    onClick={() => !uploading && fileInputRef.current?.click()}
+                  >
+                    {uploading ? (
+                      <div className="space-y-2">
+                        <Loader2 className="h-8 w-8 text-primary animate-spin mx-auto" />
+                        <p className="text-xs text-muted-foreground">Enviando...</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <ImageIcon className="h-8 w-8 text-muted-foreground mx-auto" />
+                        <div>
+                          <p className="text-sm font-medium">Clique para enviar</p>
+                          <p className="text-xs text-muted-foreground">
+                            JPG, PNG até 10MB
+                          </p>
                         </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <ImageIcon className="h-8 w-8 text-muted-foreground mx-auto" />
-                          <div>
-                            <p className="text-sm font-medium">Clique para enviar</p>
-                            <p className="text-xs text-muted-foreground">
-                              JPG, PNG até 10MB
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground text-center">
-                      A Crystal pode ver e analisar suas imagens! 👀
-                    </p>
+                      </div>
+                    )}
                   </div>
-                )}
+                  <p className="text-xs text-muted-foreground text-center">
+                    A Crystal pode ver e analisar suas imagens! 👀
+                  </p>
+                </div>
               </div>
             </Card>
           </motion.div>

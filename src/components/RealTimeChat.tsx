@@ -60,7 +60,7 @@ export function RealTimeChat({
     setActiveConversation
   } = useConversations();
 
-  // Initialize conversation if needed
+  // Initialize conversation and auto-load last conversation if none specified
   useEffect(() => {
     const initConversation = async () => {
       if (conversationId) {
@@ -70,11 +70,49 @@ export function RealTimeChat({
       } else if (selectedCrushId && !showWelcome) {
         // Start new conversation with selected crush
         await startConversation(selectedCrushId, type);
+      } else if (!conversationId && !selectedCrushId && user?.id) {
+        // Auto-load the most recent conversation to continue where user left off
+        try {
+          const { data: lastConversation } = await supabase
+            .from('conversations')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (lastConversation) {
+            await loadConversationMessages(lastConversation.id);
+            
+            // Set crush info if it's a crush conversation
+            if (lastConversation.crush_id) {
+              const { data: crush } = await supabase
+                .from('crushes')
+                .select('name')
+                .eq('id', lastConversation.crush_id)
+                .single();
+              
+              if (crush) {
+                setSelectedCrushId(lastConversation.crush_id);
+                setSelectedCrushName(crush.name);
+              }
+            }
+            
+            setShowWelcome(false);
+            
+            // Save to localStorage for faster access next time
+            localStorage.setItem('lastConversationId', lastConversation.id);
+          }
+        } catch (error) {
+          console.log('No previous conversation found or error loading:', error);
+        }
       }
     };
 
-    initConversation();
-  }, [conversationId, selectedCrushId, type, showWelcome]);
+    if (user?.id) {
+      initConversation();
+    }
+  }, [conversationId, selectedCrushId, type, showWelcome, user?.id]);
 
   const handleStartChat = async (crushId?: string, crushName?: string) => {
     setSelectedCrushId(crushId);
@@ -82,18 +120,29 @@ export function RealTimeChat({
     setShowWelcome(false);
     
     // Start conversation
+    let conversation;
     if (crushId) {
-      await startConversation(crushId, 'crush_chat');
+      conversation = await startConversation(crushId, 'crush_chat');
     } else {
-      await startConversation(undefined, 'crystal_chat');
+      conversation = await startConversation(undefined, 'crystal_chat');
+    }
+    
+    // Save new conversation ID to localStorage
+    if (conversation?.id) {
+      localStorage.setItem('lastConversationId', conversation.id);
     }
   };
 
-  const handleGeneralChat = () => {
+  const handleGeneralChat = async () => {
     setSelectedCrushId(undefined);
     setSelectedCrushName(undefined);
     setShowWelcome(false);
-    startConversation(undefined, 'crystal_chat');
+    const conversation = await startConversation(undefined, 'crystal_chat');
+    
+    // Save new conversation ID to localStorage
+    if (conversation?.id) {
+      localStorage.setItem('lastConversationId', conversation.id);
+    }
   };
 
   const handleBackToWelcome = () => {
@@ -123,12 +172,15 @@ export function RealTimeChat({
       // Send user message
       await sendMessage(activeConversation.id, messageContent, 'user');
 
+      // Update last conversation ID in localStorage for quick access
+      localStorage.setItem('lastConversationId', activeConversation.id);
+
       // Generate Crystal's response using OpenAI
       setIsGeneratingResponse(true);
       
       try {
-        // Prepare conversation history for context - use more messages for better memory
-        const conversationHistory = (activeConversation.messages || []).slice(-20).map(msg => ({
+        // Prepare conversation history for context - use ALL messages for complete memory
+        const conversationHistory = (activeConversation.messages || []).map(msg => ({
           role: msg.sender === 'user' ? 'user' : 'assistant',
           content: msg.content
         }));

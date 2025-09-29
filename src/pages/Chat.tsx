@@ -1,11 +1,27 @@
 import { RealTimeChat } from "@/components/RealTimeChat";
 import { CrystalWelcome } from "@/components/CrystalWelcome";
 import { useConversations } from "@/hooks/useConversations";
-import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useState, useEffect } from "react";
 
 const Chat = () => {
   const [showWelcome, setShowWelcome] = useState(true);
   const { activeConversation, startConversation } = useConversations();
+  const { user } = useAuth();
+
+  // Check if there's a conversation to continue when component mounts
+  useEffect(() => {
+    const checkForExistingConversation = () => {
+      const lastConversationId = localStorage.getItem('lastConversationId');
+      if (lastConversationId && user?.id) {
+        setShowWelcome(false); // This will trigger the RealTimeChat to load the conversation
+      }
+    };
+
+    if (user?.id) {
+      checkForExistingConversation();
+    }
+  }, [user?.id]);
 
   const handleStartChat = async (crushId?: string, crushName?: string) => {
     setShowWelcome(false);
